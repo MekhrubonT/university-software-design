@@ -5,5 +5,6 @@ public interface Table {
 
     Figure getFigure(Position p);
 
+    // TODO: separately need to get black and white figures
     List<Figure> getAllFigures();
 }

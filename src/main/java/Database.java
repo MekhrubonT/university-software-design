@@ -34,12 +34,41 @@ public class Database {
     }
 
     static void updateAfterGame(Player p1, Player p2, GameResult res) {
-        // TODO
+        String sql;
+        switch (res) {
+            case WIN:
+                sql = "UPDATE PLAYERS SET RATING=" + (p1.getRating() + 1) + ", WINS=" + (p1.getWins() + 1) + " WHERE LOGIN=\"" + p1.getLogin() + "\"";
+                DatabaseHelper.databaseUpdate(sql);
+                sql = "UPDATE PLAYERS SET RATING=" + (p2.getRating() + 0) + ", LOSES=" + (p2.getLoses() + 1) + " WHERE LOGIN=\"" + p2.getLogin() + "\"";
+                DatabaseHelper.databaseUpdate(sql);
+                break;
+            case DRAW:
+                sql = "UPDATE PLAYERS SET RATING=" + (p1.getRating() + 0.5) + ", DRAWS=" + (p1.getDraws() + 1) + " WHERE LOGIN=\"" + p1.getLogin() + "\"";
+                DatabaseHelper.databaseUpdate(sql);
+                sql = "UPDATE PLAYERS SET RATING=" + (p2.getRating() + 0.5) + ", DRAWS=" + (p2.getDraws() + 1) + " WHERE LOGIN=\"" + p2.getLogin() + "\"";
+                DatabaseHelper.databaseUpdate(sql);
+                break;
+            case LOSE:
+                sql = "UPDATE PLAYERS SET RATING=" + (p1.getRating() + 0) + ", LOSES=" + (p1.getLoses() + 1) + " WHERE LOGIN=\"" + p1.getLogin() + "\"";
+                DatabaseHelper.databaseUpdate(sql);
+                sql = "UPDATE PLAYERS SET RATING=" + (p2.getRating() + 1) + ", WINS=" + (p2.getWins() + 1) + " WHERE LOGIN=\"" + p2.getLogin() + "\"";
+                DatabaseHelper.databaseUpdate(sql);
+                break;
+        }
     }
 
     static List<Player> getTop() {
-        // TODO
-        return new ArrayList<>();
+        String sql = "SELECT * FROM PLAYERS ORDER BY RATING DESC LIMIT 10";
+        List<Player> top = new ArrayList<>();
+        DatabaseHelper.databaseQuery(sql,
+                rs -> {
+                    while (rs.next()) {
+                        top.add(new Player(rs.getString("LOGIN"), rs.getString("PASSWORD"),
+                                rs.getDouble("RATING"), rs.getInt("WINS"),
+                                rs.getInt("DRAWS"), rs.getInt("LOSES")));
+                    }
+                });
+        return top;
     }
 
     static void createDatabase() throws IOException {

@@ -28,7 +28,7 @@ public class DatabaseHelper {
         }
     }
 
-    public static void databaseUpdate(String sql) throws IOException {
+    public static void databaseUpdate(String sql) {
         databaseRequest((Statement stmt) -> stmt.executeUpdate(sql));
     }
 

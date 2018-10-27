@@ -102,4 +102,13 @@ public class Player {
         return login.equals(player.getLogin()) && password.equals(player.getPassword()) && rating == player.getRating()
                 && wins == player.getWins() && draws == player.getDraws() && loses == player.getLoses();
     }
+
+    public String toString() {
+        return "Login: " + login + "\n" +
+                "Password: " + password + "\n" +
+                "Rating: " + rating + "\n" +
+                "Wins: " + wins + "\n" +
+                "Draws: " + draws + "\n" +
+                "Loses: " + loses + "\n";
+    }
 }

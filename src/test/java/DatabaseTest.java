@@ -1,3 +1,5 @@
+import model.GameResult;
+import model.Player;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -36,13 +38,13 @@ public class DatabaseTest {
     @org.junit.Test
     public void registerExistingPlayer() throws Exception {
         Player player = Database.registerPlayer("artem", "longpassword");
-        assertEquals(player, Player.emptyPlayer);
+        assertEquals(player, Player.EMPTY_PLAYER);
     }
 
     @org.junit.Test
     public void getNonExistingPlayer() throws Exception {
         Player player = Database.getPlayer("maxim", "longpassword");
-        assertEquals(player, Player.emptyPlayer);
+        assertEquals(player, Player.EMPTY_PLAYER);
     }
 
     @org.junit.Test
@@ -54,7 +56,7 @@ public class DatabaseTest {
     @org.junit.Test
     public void getExistingPlayerWithWrongPassword() throws Exception {
         Player player = Database.getPlayer("artem", "longpassword");
-        assertEquals(player, Player.emptyPlayer);
+        assertEquals(player, Player.EMPTY_PLAYER);
     }
 
     @org.junit.Test

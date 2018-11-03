@@ -1,3 +1,5 @@
+package model;
+
 /**
  * Created by -- on 20.10.2018.
  */
@@ -23,24 +25,24 @@ public class Player {
         this.loses = loses;
     }
 
-    public final static Player emptyPlayer = new Player("", "");
+    public final static Player EMPTY_PLAYER = new Player("", "");
 
-    void addWin() {
+    public void addWin() {
         wins++;
         rating++;
     }
 
-    void addDraw() {
+    public void addDraw() {
         draws++;
         rating += 0.5;
     }
 
-    void addLose() {
+    public void addLose() {
         loses++;
         rating += 0;
     }
 
-    void updateData(Player newData) {
+    public void updateData(Player newData) {
         assert login.equals(newData.getLogin());
         setRating(newData.rating);
         setWins(newData.wins);

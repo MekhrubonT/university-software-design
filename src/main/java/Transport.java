@@ -1,9 +1,12 @@
+import model.Figure;
+import model.Position;
+
 public interface Transport {
     void receiveMove(Figure f, Position to);
 
     void sendMove(Figure f, Position to);
 
-//    void sendTable(Table t);
+//    void sendTable(model.Table t);
 
-//    Table getTable();
+//    model.Table getTable();
 }

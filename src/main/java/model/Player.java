@@ -1,3 +1,5 @@
+package model;
+
 /**
  * Created by -- on 20.10.2018.
  */
@@ -8,6 +10,8 @@ public class Player {
     private int wins = 0;
     private int draws = 0;
     private int loses = 0;
+
+    public Player(){}
 
     public Player(String login, String password) {
         this.login = login;
@@ -40,7 +44,7 @@ public class Player {
         rating += 0;
     }
 
-    void updateData(Player newData) {
+    public void updateData(Player newData) {
         assert login.equals(newData.getLogin());
         setRating(newData.rating);
         setWins(newData.wins);
@@ -90,6 +94,14 @@ public class Player {
     public Player setLoses(int loses) {
         this.loses = loses;
         return this;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override

@@ -1,3 +1,8 @@
+package db;
+
+import model.GameResult;
+import model.Player;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -7,7 +12,7 @@ import java.util.List;
  * Created by -- on 20.10.2018.
  */
 public class Database {
-    static Player registerPlayer(String login, String password) throws IOException {
+    public static Player registerPlayer(String login, String password) throws IOException {
         int count = DatabaseHelper.databaseQuery("SELECT COUNT(*) FROM PLAYERS WHERE LOGIN=\"" + login + "\"",
                 rs -> rs.next() ? rs.getInt(1) : 0);
         if (count == 0) {
@@ -20,7 +25,7 @@ public class Database {
 
     }
 
-    static Player getPlayer(String login, String password) {
+    public static Player getPlayer(String login, String password) {
         int count = DatabaseHelper.databaseQuery("SELECT COUNT(*) FROM PLAYERS WHERE LOGIN=\"" + login + "\" AND PASSWORD=\"" + password + "\"",
                 rs -> rs.next() ? rs.getInt(1) : 0);
         if (count == 0) {
@@ -33,7 +38,7 @@ public class Database {
         }
     }
 
-    static void updateAfterGame(Player p1, Player p2, GameResult res) {
+    public static void updateAfterGame(Player p1, Player p2, GameResult res) {
         String sql;
         switch (res) {
             case WIN:
@@ -57,7 +62,7 @@ public class Database {
         }
     }
 
-    static List<Player> getTop() {
+    public static List<Player> getTop() {
         String sql = "SELECT * FROM PLAYERS ORDER BY RATING DESC LIMIT 10";
         List<Player> top = new ArrayList<>();
         DatabaseHelper.databaseQuery(sql,
@@ -71,7 +76,7 @@ public class Database {
         return top;
     }
 
-    static void createDatabase() throws IOException {
+    public static void createDatabase() throws IOException {
         DatabaseHelper.databaseUpdate("CREATE TABLE IF NOT EXISTS PLAYERS" +
                 "(LOGIN    TEXT PRIMARY KEY NOT NULL, " +
                 " PASSWORD TEXT             NOT NULL, " +

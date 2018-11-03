@@ -1,3 +1,5 @@
+package db;
+
 import java.io.IOException;
 import java.sql.*;
 
@@ -5,6 +7,8 @@ import java.sql.*;
  * Created by -- on 20.10.2018.
  */
 public class DatabaseHelper {
+    // TODO: database should be kept remotely
+
     private static void databaseRequest(CheckedConsumer<Statement> func) {
         try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
             Statement stmt = c.createStatement();

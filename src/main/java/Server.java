@@ -1,6 +1,10 @@
 // Mekh: Table is kept and handled on server or client?
 // Artem: Table is kept bot on server and clients. Send only moves.
 
+import db.Database;
+import model.Figure;
+import model.Position;
+
 import java.io.IOException;
 
 public class Server implements Transport {

@@ -1,3 +1,7 @@
+import model.Figure;
+import model.GameState;
+import model.Position;
+
 import java.util.List;
 
 public interface Table {

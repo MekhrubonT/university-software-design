@@ -1,3 +1,5 @@
+package model;
+
 public interface Figure {
     void makeMove(Position to);
 

@@ -9,7 +9,7 @@ public interface Table {
 
     Figure getFigure(Position p);
 
-    void setFigure(Figure figure, Position position);
+    void setFigure(Figure figure);
 
     List<Figure> getAllFigures();
 

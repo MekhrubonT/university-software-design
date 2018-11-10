@@ -16,22 +16,40 @@ class TableImpl : Table {
     val board: Array<Array<Figure?>> = Array(8) { Array(8) { null as Figure? } }
 
     init {
-        // fixme
-//        for (figureKind in FigureKind.values()) {
-//            val initWhitePositions = figureKind.initWhitePositions
-//            for (pos in initWhitePositions) {
-//                val whiteFigure = Knight(pos, Table.Color.WHITE)
-//                board[pos.row][pos.col] = whiteFigure
-//                figuresByColor[Table.Color.WHITE]?.add(whiteFigure)
-//                val mirroredPos = PositionImpl(7 - pos.row, pos.col)
-//                val blackFigure = FigureImpl(mirroredPos, figureKind, Table.Color.BLACK)
-//                board[mirroredPos.row][mirroredPos.col] = blackFigure
-//                figuresByColor[Table.Color.BLACK]?.add(whiteFigure)
-//            }
-//        }
-//        kingsPositions[Table.Color.BLACK] = PositionImpl(0, 4)
-//        kingsPositions[Table.Color.WHITE] = PositionImpl(7, 4)
-//        figures.addAll(figuresByColor.values.asSequence().flatMap { it.asSequence() })
+        repeat(8) {
+            setFigure(Pawn(PositionImpl(1, it), Table.Color.WHITE))
+            setFigure(Pawn(PositionImpl(6, it), Table.Color.BLACK))
+        }
+
+        mirrorFigure(PositionImpl(0, 0)) { pos, color -> Rook(pos, color) }
+        mirrorFigure(PositionImpl(0, 1)) { pos, color -> Knight(pos, color) }
+        mirrorFigure(PositionImpl(0, 2)) { pos, color -> Bishop(pos, color) }
+
+        setFigure(King(Table.Color.WHITE))
+        setFigure(King(Table.Color.BLACK))
+
+        setFigure(Queen(Table.Color.WHITE))
+        setFigure(Queen(Table.Color.BLACK))
+    }
+
+
+    private fun mirrorFigure(position: Position, figureSupplier: (Position, Table.Color) -> Figure) {
+        setFigure(figureSupplier(position, Table.Color.WHITE))
+        setFigure(figureSupplier(PositionImpl(position.row, 7 - position.col), Table.Color.WHITE))
+        setFigure(figureSupplier(PositionImpl(7 - position.row, position.col), Table.Color.BLACK))
+        setFigure(figureSupplier(PositionImpl(7 - position.row, 7 - position.col), Table.Color.BLACK))
+    }
+
+    fun clear() {
+        board.forEach { row ->
+            repeat(row.size) {
+                row[it]?.let { figure ->
+                    figures.remove(figure)
+                    figuresByColor[figure.color]?.remove(figure)
+                }
+                row[it] = null
+            }
+        }
     }
 
     override fun getCurrentState() = state
@@ -40,8 +58,11 @@ class TableImpl : Table {
 
     override fun getFigure(p: Position): Figure? = board[p.row][p.col]
 
-    override fun setFigure(figure: Figure?, position: Position) {
+    override fun setFigure(figure: Figure) {
+        val position = figure.position
         board[position.row][position.col] = figure
+        figures.add(figure)
+        figuresByColor[figure.color]?.add(figure)
     }
 
     override fun getAllFigures(): MutableList<Figure> = figures.toMutableList()
@@ -65,6 +86,13 @@ class TableImpl : Table {
     private fun Table.Color.other() = when (this) {
         Table.Color.BLACK -> Table.Color.WHITE
         else -> Table.Color.BLACK
+    }
+
+    private fun setFigure(figure: Figure, position: Position) {
+        val oldPosition = figure.position
+        board[oldPosition.row][oldPosition.col] = null
+        figure.position = position
+        setFigure(figure)
     }
 
     private infix fun Figure.moveTo(position: Position): Figure? {
@@ -94,10 +122,12 @@ class TableImpl : Table {
         throwUnless(isMoveFeasible(playerColor, from, to), e)
         getFigure(from)?.let { figure ->
             throwUnless(figure.isAllowedMove(to), e)
-            if (!tryMove(figure, from, to))
+            if (!tryMove(figure, from, to)) {
                 throw e()
-            if (figure::class == King::class)
+            }
+            if (figure::class == King::class) {
                 kingsPositions[turn] = to
+            }
         }
         turn = turn.other()
         updateState()
@@ -106,8 +136,8 @@ class TableImpl : Table {
     private fun revertMove(from: Position, to: Position, otherFigure: Figure?) {
         getFigure(to)?.let { figure ->
             setFigure(figure, from)
-            setFigure(otherFigure, to)
             otherFigure?.let {
+                setFigure(it, to)
                 figuresByColor[turn.other()]?.add(it)
                 figures.add(it)
             }
@@ -131,10 +161,11 @@ class TableImpl : Table {
 
     private fun updateState() {
         if (isCurrentKingBeaten()) {
-            state = if (currentHasMoves())
+            state = if (currentHasMoves()) {
                 GameState.CHECK
-            else
+            } else {
                 GameState.CHECKMATE
+            }
         } else {
             if (!currentHasMoves())
                 state = GameState.STALEMATE

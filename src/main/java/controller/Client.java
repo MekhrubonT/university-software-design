@@ -26,13 +26,46 @@ import java.io.IOException;
 
 @Controller
 public class Client {
-    Player player;
-
+    Player player = null;
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
     public String index(ModelMap map) {
-        prepareModelMap(map, new Player());
+        if (player != null && player != Player.emptyPlayer) {
+            prepareModelMap(map, player);
+            return "main";
+        }
+        prepareModelMap(map, new Player(null, null));
         return "index";
+    }
+
+    @RequestMapping(value = "/main", method = RequestMethod.GET)
+    public String main(ModelMap map) {
+        if (player != null && player != Player.emptyPlayer) {
+            prepareModelMap(map, player);
+            return "main";
+        }
+        prepareModelMap(map, new Player(null, null));
+        return "index";
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public String login(ModelMap map) {
+        if (player != null && player != Player.emptyPlayer) {
+            prepareModelMap(map, player);
+            return "main";
+        }
+        prepareModelMap(map, new Player(null, null));
+        return "login";
+    }
+
+    @RequestMapping(value = "/register", method = RequestMethod.GET)
+    public String register(ModelMap map) {
+        if (player != null && player != Player.emptyPlayer) {
+            prepareModelMap(map, player);
+            return "main";
+        }
+        prepareModelMap(map, new Player(null, null));
+        return "register";
     }
 
     @RequestMapping(value = "/goto-login", method = RequestMethod.POST)
@@ -69,6 +102,13 @@ public class Client {
         } else {
             return "register";
         }
+    }
+
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
+    public String logout(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
+        player = null;
+        prepareModelMap(map, new Player(null, null));
+        return "index";
     }
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)

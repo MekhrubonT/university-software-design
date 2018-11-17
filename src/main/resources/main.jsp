@@ -10,8 +10,8 @@
 </head>
 <body>
 
-<form:form modelAttribute="player" method="POST" action="/new-game">
-    <table align="center">
+<table align="center">
+    <form:form modelAttribute="player" method="POST" action="/new-game">
         <tr>
             <td><label>Игрок:</label></td>
             <td>${player.getLogin()}</td>
@@ -23,11 +23,15 @@
         <tr>
             <td><input type="submit" value="Новая игра"></td>
         </tr>
+    </form:form>
+        <tr>
+            <td>
+                <form:form modelAttribute="player" method="POST" action="/logout">
+                    <input type="submit" value="Выйти">
+                </form:form>
+            </td>
+        </tr>
     </table>
-</form:form>
-
-
-
 
 
 <!--/span-->

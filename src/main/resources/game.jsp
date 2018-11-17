@@ -12,6 +12,15 @@
 
 <h1 align="center">Шахматная доска</h1>
 
+<table align="center">
+    <tr>
+        <td>
+            <form:form modelAttribute="player" method="POST" action="/logout">
+                <input type="submit" value="Выйти">
+            </form:form>
+        </td>
+    </tr>
+</table>
 <!--/span-->
 
 </body>

@@ -19,6 +19,9 @@
                 <input type="submit" value="Выйти">
             </form:form>
         </td>
+        <td>
+            <img src="<c:url value="/img/black_bishop_black.png"/>"/>
+        </td>
     </tr>
 </table>
 <!--/span-->

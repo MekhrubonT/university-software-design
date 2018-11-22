@@ -6,7 +6,7 @@ public interface Transport {
 
     void sendMove(Figure f, Position to);
 
-//    void sendTable(Table t);
+//    void sendTable(model.Table t);
 
-//    Table getTable();
+//    model.Table getTable();
 }

@@ -1,8 +1,3 @@
-package db;
-
-import model.GameResult;
-import model.Player;
-
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -20,7 +15,7 @@ public class Database {
                     "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES (\"" + login + "\",\"" + password + "\",0,0,0,0)");
             return new Player(login, password);
         } else {
-            return Player.emptyPlayer;
+            return Player.EMPTY_PLAYER;
         }
 
     }
@@ -29,7 +24,7 @@ public class Database {
         int count = DatabaseHelper.databaseQuery("SELECT COUNT(*) FROM PLAYERS WHERE LOGIN=\"" + login + "\" AND PASSWORD=\"" + password + "\"",
                 rs -> rs.next() ? rs.getInt(1) : 0);
         if (count == 0) {
-            return Player.emptyPlayer;
+            return Player.EMPTY_PLAYER;
         } else {
             Player player = new Player(login, password);
             DatabaseHelper.databaseQuery("SELECT * FROM PLAYERS WHERE LOGIN=\"" + login + "\" AND PASSWORD=\"" + password + "\"",

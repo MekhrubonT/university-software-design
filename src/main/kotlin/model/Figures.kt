@@ -48,6 +48,10 @@ sealed class FigureImpl(
         return movePairs.map { it.map { x: Pair<Int, Int> -> singleFigureMove(this, x) } }
     }
 
+    override fun colorToString(): String {
+        return if (mColor == Table.Color.BLACK) "black" else "white"
+    }
+
     open fun afterMove() {
         moved = true
     }
@@ -89,6 +93,10 @@ class King(mPosition: Position, mColor: Table.Color) :
         isShortCastlingPossible = false
         isLongCastlingPossible = false
     }
+
+    override fun toString(): String {
+        return "king"
+    }
 }
 
 class Pawn(mPosition: Position, mColor: Table.Color) :
@@ -109,22 +117,39 @@ class Pawn(mPosition: Position, mColor: Table.Color) :
                 mBeatDirections.filter { position plus it != null }
                         .map { sequenceOf(singleFigureMove(this, it)) })
     }
+
+    override fun toString(): String {
+        return "pawn"
+    }
 }
 
 class Rook(mPosition: Position, mColor: Table.Color) :
-        FigureImpl(mPosition, mColor, ROOK_DIRS)
+        FigureImpl(mPosition, mColor, ROOK_DIRS) {
+    override fun toString(): String {
+        return "rook"
+    }
+}
 
 class Knight(mPosition: Position, mColor: Table.Color) :
         FigureImpl(
                 mPosition,
                 mColor,
                 listOf(Pair(1, 2), Pair(2, 1), Pair(-1, 2), Pair(-2, 1), Pair(1, -2), Pair(2, -1), Pair(-1, -2), Pair(-2, -1)))
-
+{
+    override fun toString(): String {
+        return "knight"
+    }
+}
 class Bishop(mPosition: Position, mColor: Table.Color) :
         FigureImpl(
                 mPosition,
                 mColor,
                 BISHOP_DIRS)
+{
+    override fun toString(): String {
+        return "bishop"
+    }
+}
 
 class Queen(mPosition: Position, mColor: Table.Color) :
         FigureImpl(
@@ -135,4 +160,8 @@ class Queen(mPosition: Position, mColor: Table.Color) :
             PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 4),
             mColor
     )
+
+    override fun toString(): String {
+        return "queen"
+    }
 }

@@ -3,9 +3,7 @@ package controller;
 // TODO: need "model.Position from" everywhere to determine the move or model.Figure has info about its current position?
 
 import db.Database;
-import model.Figure;
-import model.Player;
-import model.Position;
+import model.*;
 import org.apache.jasper.servlet.JspServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -27,10 +25,11 @@ import java.io.IOException;
 @Controller
 public class Client {
     Player player = null;
+    Table table = null;
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
     public String index(ModelMap map) {
-        if (player != null && player != Player.emptyPlayer) {
+        if (player != null && player != Player.EMPTY_PLAYER) {
             prepareModelMap(map, player);
             return "main";
         }
@@ -40,7 +39,7 @@ public class Client {
 
     @RequestMapping(value = "/main", method = RequestMethod.GET)
     public String main(ModelMap map) {
-        if (player != null && player != Player.emptyPlayer) {
+        if (player != null && player != Player.EMPTY_PLAYER) {
             prepareModelMap(map, player);
             return "main";
         }
@@ -50,7 +49,7 @@ public class Client {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login(ModelMap map) {
-        if (player != null && player != Player.emptyPlayer) {
+        if (player != null && player != Player.EMPTY_PLAYER) {
             prepareModelMap(map, player);
             return "main";
         }
@@ -60,7 +59,7 @@ public class Client {
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
     public String register(ModelMap map) {
-        if (player != null && player != Player.emptyPlayer) {
+        if (player != null && player != Player.EMPTY_PLAYER) {
             prepareModelMap(map, player);
             return "main";
         }
@@ -84,7 +83,7 @@ public class Client {
     public String login(@ModelAttribute("player") Player p, ModelMap map) {
         Player player = Database.getPlayer(p.getLogin(), p.getPassword());
         prepareModelMap(map, player);
-        if (player != Player.emptyPlayer) {
+        if (player != Player.EMPTY_PLAYER) {
             this.player = player;
             return "main";
         } else {
@@ -96,7 +95,7 @@ public class Client {
     public String register(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
         Player player = Database.registerPlayer(p.getLogin(), p.getPassword());
         prepareModelMap(map, player);
-        if (player != Player.emptyPlayer) {
+        if (player != Player.EMPTY_PLAYER) {
             this.player = player;
             return "main";
         } else {
@@ -113,7 +112,8 @@ public class Client {
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
     public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
-        //TODO
+        table = new TableImpl();
+        prepareModelMap(map, player, table);
         return "game";
     }
 
@@ -159,6 +159,11 @@ public class Client {
 
     private void prepareModelMap(ModelMap map, Player player) {
         map.addAttribute("player", player);
+    }
+
+    private void prepareModelMap(ModelMap map, Player player, Table table) {
+        map.addAttribute("player", player);
+        map.addAttribute("table", table);
     }
 
 }

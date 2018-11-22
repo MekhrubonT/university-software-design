@@ -1,3 +1,8 @@
+package db;
+
+import model.GameResult;
+import model.Player;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.ArrayList;

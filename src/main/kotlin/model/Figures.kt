@@ -85,7 +85,7 @@ class King(mPosition: Position, mColor: Table.Color) :
     var isLongCastlingPossible = true
 
     constructor(mColor: Table.Color) : this(
-            PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 4),
+            PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 3),
             mColor)
 
     override fun afterMove() {

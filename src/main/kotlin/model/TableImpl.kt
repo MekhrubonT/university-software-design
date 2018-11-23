@@ -58,6 +58,10 @@ class TableImpl : Table {
 
     override fun getFigure(p: Position): Figure? = board[p.row][p.col]
 
+    override fun getFigure(row: String, column: String): Figure? {
+        return this.getFigure(PositionImpl(Integer.parseInt(row), Integer.parseInt(column)))
+    }
+
     override fun setFigure(figure: Figure) {
         val position = figure.position
         board[position.row][position.col] = figure

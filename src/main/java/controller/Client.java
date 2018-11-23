@@ -113,7 +113,13 @@ public class Client {
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
     public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
         table = new TableImpl();
-        prepareModelMap(map, player, table);
+        prepareModelMap(map, player, table, new RawMove());
+        return "game";
+    }
+
+    @RequestMapping(value = "/make_move", method = RequestMethod.POST)
+    public String makeMove(@ModelAttribute("player") Player p, ModelMap map) {
+        // TODO
         return "game";
     }
 
@@ -161,9 +167,9 @@ public class Client {
         map.addAttribute("player", player);
     }
 
-    private void prepareModelMap(ModelMap map, Player player, Table table) {
+    private void prepareModelMap(ModelMap map, Player player, Table table, RawMove move) {
         map.addAttribute("player", player);
         map.addAttribute("table", table);
+        map.addAttribute("move", move);
     }
-
 }

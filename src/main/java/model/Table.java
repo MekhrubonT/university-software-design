@@ -19,7 +19,7 @@ public interface Table {
 
     List<Figure> getWhiteFigures();
 
-    void makeMove(Color playerColor, Position from, Position to);
+    void makeMove(Color playerColor, Position from, Position to) throws IllegalMoveException;
 
     enum Color {
         BLACK, WHITE

@@ -113,27 +113,40 @@ public class Client {
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
     public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
         table = new TableImpl();
-        prepareModelMap(map, player, table, new RawMove());
+        prepareModelMap(map, player, table, new RawMove(), "");
         return "game";
     }
 
     @RequestMapping(value = "/make_move", method = RequestMethod.POST)
-    public String makeMove(@ModelAttribute("player") Player p, ModelMap map) {
-        // TODO
+    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) {
+        try {
+            Position from = parsePosition(move.getFrom());
+            Position to = parsePosition(move.getTo());
+            table.makeMove(table.getCurrentTurn(), from, to);
+        } catch (IllegalMoveException e) {
+            prepareModelMap(map, player, table, new RawMove(), e.getMessage());
+            return "game";
+        }
+        prepareModelMap(map, player, table, new RawMove(), "");
         return "game";
+    }
+
+    private Position parsePosition(String pos) throws IllegalMoveException {
+        char col = pos.charAt(0);
+        int row = Integer.parseInt(pos.substring(1, 2)) - 1;
+        if (col > 'h' || col < 'a' || row > 7 || row < 0) {
+            throw new IllegalMoveException("Illegal string for move position: " + pos);
+        }
+        int column = 'h' - col;
+        return new PositionImpl(row, column);
     }
 
     void updatePlayerData(Player newData) {
         player.updateData(newData);
     }
 
-    void makeMove(Figure f, Position to) {
-    }
-
     void receivedMove(Figure f, Position to) {
     }
-
-    //    void updateTable(Table t);
 
     public static void main(String[] args) throws Exception {
         Server server = new Server(8085);
@@ -167,9 +180,10 @@ public class Client {
         map.addAttribute("player", player);
     }
 
-    private void prepareModelMap(ModelMap map, Player player, Table table, RawMove move) {
+    private void prepareModelMap(ModelMap map, Player player, Table table, RawMove move, String exception) {
         map.addAttribute("player", player);
         map.addAttribute("table", table);
         map.addAttribute("move", move);
+        map.addAttribute("exception", exception);
     }
 }

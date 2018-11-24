@@ -67,6 +67,13 @@
     </tr>
 </table>
 <table align="center">
+    <form:form modelAttribute="exception">
+    <tr >
+        <td style="text-align: center">
+            <label style="display: block; text-align: center<c:if test="${exception == \"\"}">; visibility: hidden</c:if>" >${exception}</label>
+        </td>
+    </tr>
+    </form:form>
     <tr>
         <td style="text-align: center">
             <form:form modelAttribute="player" method="POST" action="/logout">

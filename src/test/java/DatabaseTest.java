@@ -23,11 +23,11 @@ public class DatabaseTest {
     public void setUp() throws Exception {
         DatabaseHelper.databaseUpdate("DELETE FROM PLAYERS");
         DatabaseHelper.databaseUpdate("INSERT INTO PLAYERS " +
-                "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES (\"artem\",\"123456\",0,0,0,0)");
+                "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES ('artem','123456',0,0,0,0)");
         DatabaseHelper.databaseUpdate("INSERT INTO PLAYERS " +
-                "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES (\"mekh\",\"000000\",0,0,0,0)");
+                "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES ('mekh','000000',0,0,0,0)");
         DatabaseHelper.databaseUpdate("INSERT INTO PLAYERS " +
-                "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES (\"roman\",\"qwerty\",0,0,0,0)");
+                "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES ('roman','qwerty',0,0,0,0)");
 
     }
 

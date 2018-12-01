@@ -100,8 +100,8 @@ class TableImpl : Table {
     }
 
     private infix fun Figure.moveTo(position: Position): Figure? {
-        setFigure(this, position)
         val otherFigure = getFigure(position)
+        setFigure(this, position)
         otherFigure?.let {
             figuresByColor[turn.other()]?.remove(it)
             figures.remove(it)
@@ -115,6 +115,16 @@ class TableImpl : Table {
             revertMove(from, to, otherFigure)
             return false
         }
+        return true
+    }
+
+    private fun tryTryMove(figure: Figure, from: Position, to: Position): Boolean {
+        val otherFigure = figure moveTo to
+        if (isCurrentKingBeaten()) {
+            revertMove(from, to, otherFigure)
+            return false
+        }
+        revertMove(from, to, otherFigure)
         return true
     }
 
@@ -145,7 +155,7 @@ class TableImpl : Table {
                 figuresByColor[turn.other()]?.add(it)
                 figures.add(it)
             }
-        } ?: throw IllegalStateException()
+        } //?: throw IllegalStateException()
     }
 
     private fun Figure.hasMoves(): Boolean {
@@ -153,8 +163,10 @@ class TableImpl : Table {
             movesForDir.any { move ->
                 val to = position plus move.toPair()
                 to?.let { newPosition ->
-                    getFigure(newPosition) == null && tryMove(this, newPosition, to)
+                    tryTryMove(this, position, newPosition)
+                    //getFigure(newPosition) == null && tryMove(this, newPosition, to)
                 } != false
+
             }
         }
     }

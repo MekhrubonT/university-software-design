@@ -24,8 +24,9 @@ import java.io.IOException;
 
 @Controller
 public class Client {
-    Player player = null;
-    Table table = null;
+    private Player player = null;
+    private Table table = null;
+    private GameResult result = null;
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
     public String index(ModelMap map) {
@@ -45,6 +46,12 @@ public class Client {
         }
         prepareModelMap(map, new Player(null, null));
         return "index";
+    }
+
+    @RequestMapping(value = "/goto_main", method = RequestMethod.POST)
+    public String gotoMain(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
+        prepareModelMap(map, p);
+        return "main";
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
@@ -113,6 +120,7 @@ public class Client {
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
     public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
         table = new TableImpl();
+        result = null;
         prepareModelMap(map, player, table, new RawMove(), "");
         return "game";
     }
@@ -127,8 +135,28 @@ public class Client {
             prepareModelMap(map, player, table, new RawMove(), e.getMessage());
             return "game";
         }
-        prepareModelMap(map, player, table, new RawMove(), "");
-        return "game";
+        switch (table.getCurrentState()) {
+            case NONE:
+                prepareModelMap(map, player, table, new RawMove(), "");
+                return "game";
+            case CHECK:
+                prepareModelMap(map, player, table, new RawMove(), "");
+                return "game";
+            case CHECKMATE:
+                result = GameResult.WIN;
+                player.addWin();
+                Database.updatePlayer(player);
+                prepareModelMap(map, player, table, result);
+                return "after_game";
+            case STALEMATE:
+                result = GameResult.DRAW;
+                player.addDraw();
+                Database.updatePlayer(player);
+                prepareModelMap(map, player, table, result);
+                return "after_game";
+            default:
+                return "";
+        }
     }
 
     private Position parsePosition(String pos) throws IllegalMoveException {
@@ -145,10 +173,8 @@ public class Client {
         player.updateData(newData);
     }
 
-    void receivedMove(Figure f, Position to) {
-    }
-
     public static void main(String[] args) throws Exception {
+        Database.createDatabase();
         Server server = new Server(8085);
         server.setHandler(getServletContextHandler(getContext()));
         server.start();
@@ -178,6 +204,12 @@ public class Client {
 
     private void prepareModelMap(ModelMap map, Player player) {
         map.addAttribute("player", player);
+    }
+
+    private void prepareModelMap(ModelMap map, Player player, Table table, GameResult result) {
+        map.addAttribute("player", player);
+        map.addAttribute("table", table);
+        map.addAttribute("result", result);
     }
 
     private void prepareModelMap(ModelMap map, Player player, Table table, RawMove move, String exception) {

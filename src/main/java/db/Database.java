@@ -33,9 +33,15 @@ public class Database {
         } else {
             Player player = new Player(login, password);
             DatabaseHelper.databaseQuery("SELECT * FROM PLAYERS WHERE LOGIN='" + login + "' AND PASSWORD='" + password + "'",
-                    (DatabaseHelper.CheckedConsumer<ResultSet>) rs -> {rs.next(); player.setRating(rs.getDouble("RATING")).setWins(rs.getInt("WINS")).setDraws(rs.getInt("DRAWS")).setLoses(rs.getInt("LOSES"));});
+                    rs -> {rs.next(); player.setRating(rs.getDouble("RATING")).setWins(rs.getInt("WINS")).setDraws(rs.getInt("DRAWS")).setLoses(rs.getInt("LOSES"));});
             return player;
         }
+    }
+
+    public static void updatePlayer(Player p) {
+        String sql = "UPDATE PLAYERS SET RATING=" + (p.getRating()) + ", WINS=" + (p.getWins()) + ", DRAWS=" + (p.getDraws())
+                    + ", LOSES=" + (p.getLoses())+ " WHERE LOGIN='" + p.getLogin() + "'";
+        DatabaseHelper.databaseUpdate(sql);
     }
 
     public static void updateAfterGame(Player p1, Player p2, GameResult res) {

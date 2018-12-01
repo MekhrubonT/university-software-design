@@ -10,8 +10,8 @@ public class DatabaseHelper {
 
     private static void databaseRequest(CheckedConsumer<Statement> func) {
         try (Connection c = DriverManager.getConnection(
-                "jdbc:postgresql://192.168.1.45:5432/chess", "postgres",
-                "iv")) {
+                "jdbc:postgresql://192.168.1.45:5432/chess", "chessmaster",
+                "chess")) {
             Statement stmt = c.createStatement();
 
             func.accept(stmt);
@@ -23,8 +23,8 @@ public class DatabaseHelper {
 
     private static int databaseRequest(CheckedFunction<Statement, Integer> func) {
         try (Connection c = DriverManager.getConnection(
-                "jdbc:postgresql://192.168.1.45:5432/chess", "postgres",
-                "iv")) {
+                "jdbc:postgresql://192.168.1.45:5432/chess", "chessmaster",
+                "chess")) {
             Statement stmt = c.createStatement();
 
             int res = func.apply(stmt);

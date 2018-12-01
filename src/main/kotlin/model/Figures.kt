@@ -53,6 +53,30 @@ sealed class FigureImpl(
     }
 
     fun upgrade(): Figure = this
+
+    override fun toString(): String {
+        return "${this::class.java.name}(mPosition=$mPosition, mColor=$mColor)"
+    }
+
+//    override fun equals(other: Any?): Boolean {
+//        if (this === other) return true
+//        if (javaClass != other?.javaClass) return false
+//
+//        other as FigureImpl
+//
+//        if (mPosition != other.mPosition) return false
+//        if (mColor != other.mColor) return false
+//
+//        return true
+//    }
+//
+//    override fun hashCode(): Int {
+//        var result = mPosition.hashCode()
+//        result = 31 * result + mColor.hashCode()
+//        return result
+//    }
+
+
 }
 
 private infix fun Pair<Int, Int>.plus(dir: Pair<Int, Int>): Pair<Int, Int>? {
@@ -132,7 +156,7 @@ class Queen(mPosition: Position, mColor: Table.Color) :
                 mColor,
                 ROOK_DIRS.plus(BISHOP_DIRS)) {
     constructor(mColor: Table.Color) : this(
-            PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 4),
+            PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 3),
             mColor
     )
 }

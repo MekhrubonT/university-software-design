@@ -1,9 +1,14 @@
 package model
 
 class PositionImpl(row: Int, column: Int) : Position {
-    override fun isValid(): Boolean = row in (0..7) && col in (0..7)
-
     private val coordinates = Pair(row, column)
+
+    init {
+        if (!isValid)
+            throw IllegalArgumentException("invalid coordinates: $coordinates")
+    }
+
+    override fun isValid(): Boolean = row in (0..7) && col in (0..7)
 
     override fun getRow() = coordinates.first
 

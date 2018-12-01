@@ -96,8 +96,8 @@ class TableImpl : Table {
     }
 
     private infix fun Figure.moveTo(position: Position): Figure? {
-        setFigure(this, position)
         val otherFigure = getFigure(position)
+        setFigure(this, position)
         otherFigure?.let {
             figuresByColor[turn.other()]?.remove(it)
             figures.remove(it)
@@ -105,11 +105,12 @@ class TableImpl : Table {
         return otherFigure
     }
 
-    private fun tryMove(figure: Figure, from: Position, to: Position): Boolean {
+    private fun tryMove(figure: Figure, from: Position, to: Position, revert: Boolean = false): Boolean {
         val otherFigure = figure moveTo to
-        if (isCurrentKingBeaten()) {
+        val isKingBeaten = isCurrentKingBeaten()
+        if (revert || isKingBeaten) {
             revertMove(from, to, otherFigure)
-            return false
+            return !isKingBeaten
         }
         return true
     }
@@ -141,7 +142,8 @@ class TableImpl : Table {
                 figuresByColor[turn.other()]?.add(it)
                 figures.add(it)
             }
-        } ?: throw IllegalStateException()
+            figure
+        } ?: throw IllegalArgumentException("position $to must not be empty")
     }
 
     private fun Figure.hasMoves(): Boolean {
@@ -149,7 +151,7 @@ class TableImpl : Table {
             movesForDir.any { move ->
                 val to = position plus move.toPair()
                 to?.let { newPosition ->
-                    getFigure(newPosition) == null && tryMove(this, newPosition, to)
+                    getFigure(newPosition) == null && tryMove(this, position, newPosition, true)
                 } != false
             }
         }
@@ -170,6 +172,10 @@ class TableImpl : Table {
             if (!currentHasMoves())
                 state = GameState.STALEMATE
         }
+    }
+
+    fun getFigure(row: Int, col: Int): Figure? {
+        return board[row][col]
     }
 }
 

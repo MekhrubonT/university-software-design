@@ -71,7 +71,7 @@ public class ServerTransport extends AbstractTransport {
             server.joinGameQueue.add(this);
         } else {
             ServerTransport black = server.joinGameQueue.poll();
-            server.createGame(null, null); // TODO: Mekhrubon
+            server.createGame(this, black);
             sendJSONMessage(COLOR_WHITE);
             black.sendJSONMessage(COLOR_BLACK);
         }

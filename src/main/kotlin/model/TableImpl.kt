@@ -146,12 +146,17 @@ class TableImpl : Table {
         } ?: throw IllegalArgumentException("position $to must not be empty")
     }
 
+    fun Figure.isAllowedMove(to: Position?): Boolean {
+        return getPossibleMoves(this@TableImpl).flatten().map { position plus it.toPair() }.contains(to)
+    }
+
+
     private fun Figure.hasMoves(): Boolean {
-        return possibleMoves.any { movesForDir ->
+        return getPossibleMoves(this@TableImpl).any { movesForDir ->
             movesForDir.any { move ->
                 val to = position plus move.toPair()
                 to?.let { newPosition ->
-                    getFigure(newPosition) == null && tryMove(this, position, newPosition, true)
+                    getFigure(newPosition)?.color != color && tryMove(this, position, newPosition, true)
                 } != false
             }
         }

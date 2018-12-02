@@ -36,7 +36,7 @@ class TableImplTest {
                 arrayOf(
                         Rook(PositionImpl(0, 0), Table.Color.WHITE),
                         PositionImpl(0, 7),
-                        true,
+                        false,
                         Pawn(PositionImpl(0, 1), Table.Color.WHITE)
                 )
         )
@@ -47,6 +47,8 @@ class TableImplTest {
     internal fun testSingleFigure(figure: Figure, to: Position, isValid: Boolean, obstacle: Figure? = null) {
         val from = figure.position
         table.setFigure(figure)
+        if (obstacle != null)
+            table.setFigure(obstacle)
 
         val move = { table.makeMove(Table.Color.WHITE, from, to) }
         if (!isValid) {

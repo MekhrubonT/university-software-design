@@ -4,7 +4,7 @@ import kotlin.sequences.Sequence;
 
 public interface Figure {
 
-    boolean isAllowedMove(Position to);
+//    boolean isAllowedMove(Position to);
 
     boolean isMine(Table.Color playerColor);
 
@@ -16,5 +16,5 @@ public interface Figure {
 
     boolean beats(Position position);
 
-    Sequence<Sequence<Move>> getPossibleMoves();
+    Sequence<Sequence<Move>> getPossibleMoves(Table table);
 }

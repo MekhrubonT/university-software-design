@@ -25,27 +25,31 @@ sealed class FigureImpl(
         mPosition = position
     }
 
-    override fun isAllowedMove(to: Position?): Boolean {
-        return possibleMoves.flatten().map { position plus it.toPair() }.contains(to)
-    }
-
     override fun isMine(playerColor: Table.Color): Boolean {
         return mColor == playerColor
     }
 
-    override fun getPossibleMoves(): Sequence<Sequence<Move>> {
+    override fun getPossibleMoves(table: Table): Sequence<Sequence<Move>> {
         val shortMoves = sequenceOf(mMoveDirections.asSequence()
-                .takeWhile { position plus it != null })
+                .filter { position plus it != null })
         val movePairs = if (mShortMoves) {
             shortMoves
         } else {
             mMoveDirections.asSequence().map { direction ->
                 generateSequence(direction) { it plus direction }
-                        .takeWhile { position plus it != null }
+                        .takeWhile { shift ->
+                            val curPosition = position plus shift
+                            curPosition?.let {
+                                val otherFigure = table.getFigure(position plus shift)
+                                otherFigure == null || otherFigure.color != color &&
+                                        (position plus (shift minus direction))
+                                                ?.let { it == position || table.getFigure(it) == null } == true
+                            } == true
+                        }
             }
 
         }
-        return movePairs.map { it.map { x: Pair<Int, Int> -> singleFigureMove(this, x) } }
+        return movePairs.map { it.map { shift -> singleFigureMove(this, shift) } }
     }
 
     open fun afterMove() {
@@ -57,30 +61,14 @@ sealed class FigureImpl(
     override fun toString(): String {
         return "${this::class.java.name}(mPosition=$mPosition, mColor=$mColor)"
     }
-
-//    override fun equals(other: Any?): Boolean {
-//        if (this === other) return true
-//        if (javaClass != other?.javaClass) return false
-//
-//        other as FigureImpl
-//
-//        if (mPosition != other.mPosition) return false
-//        if (mColor != other.mColor) return false
-//
-//        return true
-//    }
-//
-//    override fun hashCode(): Int {
-//        var result = mPosition.hashCode()
-//        result = 31 * result + mColor.hashCode()
-//        return result
-//    }
-
-
 }
 
-private infix fun Pair<Int, Int>.plus(dir: Pair<Int, Int>): Pair<Int, Int>? {
+private infix fun Pair<Int, Int>.plus(dir: Pair<Int, Int>): Pair<Int, Int> {
     return first + dir.first to second + dir.second
+}
+
+private infix fun Pair<Int, Int>.minus(dir: Pair<Int, Int>): Pair<Int, Int> {
+    return first - dir.first to second - dir.second
 }
 
 val HORIZONTAL = listOf(Pair(0, 1), Pair(0, -1))
@@ -99,7 +87,8 @@ class King(mPosition: Position, mColor: Table.Color) :
         FigureImpl(
                 mPosition,
                 mColor,
-                ROOK_DIRS.plus(BISHOP_DIRS)) {
+                ROOK_DIRS.plus(BISHOP_DIRS),
+                true) {
     var isShortCastlingPossible = true
 
     var isLongCastlingPossible = true
@@ -128,10 +117,11 @@ class Pawn(mPosition: Position, mColor: Table.Color) :
         return beatsImpl(mBeatDirections, position)
     }
 
-    override fun getPossibleMoves(): Sequence<Sequence<Move>> {
-        return super.getPossibleMoves().plus(
+    override fun getPossibleMoves(table: Table): Sequence<Sequence<Move>> {
+        return super.getPossibleMoves(table).plus(
                 mBeatDirections.filter { position plus it != null }
                         .map { sequenceOf(singleFigureMove(this, it)) })
+                .plus(sequenceOf(sequenceOf(singleFigureMove(this, Pair(2, 0)))))
     }
 }
 

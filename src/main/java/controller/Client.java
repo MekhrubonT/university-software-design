@@ -18,15 +18,34 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+import transports.ClientTransport;
 import web.WebConfig;
 
 import java.io.IOException;
 
 @Controller
-public class Client {
+public class Client implements AutoCloseable {
     private Player player = null;
     private Table table = null;
     private GameResult result = null;
+    private final ClientTransport client;
+    private final Server server;
+
+    public Client(int uIPort, int serverPort) throws Exception {
+        server = new Server(uIPort);
+        server.setHandler(getServletContextHandler(getContext()));
+        server.start();
+        client = new ClientTransport(serverPort); // TODO: change client action to actions through Transport
+    }
+
+    @Override
+    public void close() throws Exception {
+        client.close();
+    }
+
+    public void join() throws InterruptedException {
+        server.join();
+    }
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
     public String index(ModelMap map) {

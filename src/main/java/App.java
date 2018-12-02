@@ -1,5 +1,6 @@
-import name.Server;
-import transports.ClientTransport;
+import db.Database;
+import controller.Server;
+import controller.Client;
 
 public class App {
     enum ServerOrClient {
@@ -36,14 +37,17 @@ public class App {
 
     private static void runServer(int port) throws Exception {
         System.out.println("App.runServer");
+        Database.createDatabase();
         try (Server server = new Server(port)) {
-            server.start();
+            server.run();
         }
     }
 
     private static void runClient(int port) throws Exception {
         System.out.println("App.runClient");
-        try (ClientTransport client = new ClientTransport(port)) {
+        int uIPort = 8100;
+        try (Client client = new Client(uIPort, port)) {
+            client.join();
         }
     }
 }

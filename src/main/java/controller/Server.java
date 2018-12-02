@@ -1,4 +1,4 @@
-package name;// Artem: model.Table is kept bot on server and clients. Send only moves.
+package controller;// Artem: model.Table is kept bot on server and clients. Send only moves.
 
 import model.IllegalMoveException;
 import model.Table;
@@ -45,7 +45,7 @@ public class Server implements AutoCloseable {
     }
 
 
-    public void start() throws IOException, ParseException, IllegalMoveException {
+    public void run() throws IOException, ParseException, IllegalMoveException {
         while (true) {
             selector.select();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();

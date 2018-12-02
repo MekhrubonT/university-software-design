@@ -19,6 +19,11 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         this.client = client;
     }
 
+    public void sendMessage(String msg) throws IOException {
+        ByteBuffer wrap = ByteBuffer.wrap(msg.getBytes());
+        client.write(wrap);
+    }
+
     public void sendMessageAndWaitForResponseOk(String msg) throws IOException, ParseException {
         JSONObject response = sendMessageAndWaitForResponse(msg);
 
@@ -28,12 +33,11 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
     }
 
     public JSONObject sendMessageAndWaitForResponse(String msg) throws IOException, ParseException {
-        ByteBuffer wrap = ByteBuffer.wrap(msg.getBytes());
-        client.write(wrap);
+        sendMessage(msg);
         return waitForMessage();
     }
 
-    private JSONObject waitForMessage() throws IOException, ParseException {
+    protected JSONObject waitForMessage() throws IOException, ParseException {
         ByteBuffer wrap = ByteBuffer.allocate(256);
         client.read(wrap);
         return (JSONObject) new JSONParser().parse(wrap.toString());
@@ -44,20 +48,12 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         client.close();
     }
 
-    public void sendMove(Figure figure, Position to) throws IOException, ParseException {
+    public void sendMove(Position from, Position to) throws IOException, ParseException {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_MOVE);
-        object.put(TRANSPORT_ACTION_MOVE_FROM, figure.toString());
+        object.put(TRANSPORT_ACTION_MOVE_FROM, from.toString());
         object.put(TRANSPORT_ACTION_MOVE_TO, to.toString());
 
-        sendMessageAndWaitForResponseOk(object.toString());
-    }
-
-    public void receiveMove() throws IOException, ParseException {
-        JSONObject opponentMove = waitForMessage();
-        Position from = AbstractPosition.fromString((String) opponentMove.get(TRANSPORT_ACTION_MOVE_FROM));
-        Position to = AbstractPosition.fromString((String) opponentMove.get(TRANSPORT_ACTION_MOVE_TO));
-
-        receiveMove(from, to); // TODO: Mekhrubon
+        sendMessage(object.toString());
     }
 }

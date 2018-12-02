@@ -22,8 +22,12 @@ public class TransportConstants {
 
     public static final String TRANSPORT_RESULT = "result";
     public static final String TRANSPORT_RESULT_OK = "result-ok";
+    public static final String TRANSPORT_RESULT_CHECKMATE = "result-checkmate";
+    public static final String TRANSPORT_RESULT_STALEMATE = "result-stalemate";
 
     public static final JSONObject RESPONSE_OK;
+    public static final JSONObject RESPONSE_CHECKMATE;
+    public static final JSONObject RESPONSE_STALEMATE;
     public static final JSONObject COLOR_WHITE;
     public static final JSONObject COLOR_BLACK;
     static {
@@ -31,6 +35,18 @@ public class TransportConstants {
         responseOk.put(TRANSPORT_RESULT, TRANSPORT_RESULT_OK);
         RESPONSE_OK = responseOk;
     }
+    static {
+        JSONObject responeCheckMate = new JSONObject();
+        responeCheckMate.put(TRANSPORT_RESULT, TRANSPORT_RESULT_CHECKMATE);
+        RESPONSE_CHECKMATE = responeCheckMate;
+    }
+    static {
+        JSONObject responeStaleMate = new JSONObject();
+        responeStaleMate.put(TRANSPORT_RESULT, TRANSPORT_RESULT_STALEMATE);
+        RESPONSE_STALEMATE = responeStaleMate;
+    }
+
+
 
     static {
         JSONObject colorWhite = new JSONObject();

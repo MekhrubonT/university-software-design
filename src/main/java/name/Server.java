@@ -1,5 +1,8 @@
 package name;// Artem: model.Table is kept bot on server and clients. Send only moves.
 
+import model.IllegalMoveException;
+import model.Table;
+import model.TableImpl;
 import org.json.simple.parser.ParseException;
 import transports.ServerTransport;
 import transports.Transport;
@@ -17,6 +20,7 @@ public class Server implements AutoCloseable {
     private final ServerSocketChannel serverSocket;
     public final Queue<ServerTransport> joinGameQueue = new LinkedList<>();
     private final Map<SocketChannel, ServerTransport> clientsTransport = new HashMap<>();
+    private final Map<Transport, Table> currentGames = new HashMap<>();
 
     public Server(int port) throws IOException {
         selector = Selector.open();
@@ -35,13 +39,13 @@ public class Server implements AutoCloseable {
     }
 
     private void receiveClientAction(SelectionKey key)
-            throws IOException, ParseException {
+            throws IOException, ParseException, IllegalMoveException {
         SocketChannel client = (SocketChannel) key.channel();
         clientsTransport.get(client).receiveAction();
     }
 
 
-    public void start() throws IOException, ParseException {
+    public void start() throws IOException, ParseException, IllegalMoveException {
         while (true) {
             selector.select();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
@@ -64,11 +68,17 @@ public class Server implements AutoCloseable {
     }
 
     public void createGame(Transport white, Transport black) {
-        // TODO: Mekhrubon
+        TableImpl table = new TableImpl();
+        currentGames.put(white, table);
+        currentGames.put(black, table);
     }
 
     @Override
     public void close() throws Exception {
         serverSocket.close();
+    }
+
+    public Table getGameTable(Transport transport) {
+        return currentGames.get(transport);
     }
 }

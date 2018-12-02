@@ -1,7 +1,6 @@
 package transports;
 
-import model.AbstractPosition;
-import model.Position;
+import model.*;
 import name.Server;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,39 +14,35 @@ import static transports.TransportConstants.*;
 
 public class ServerTransport extends AbstractTransport {
     final Server server;
+    private Table.Color color;
+    private AbstractTransport opponent;
 
     public ServerTransport(SocketChannel client, Server server) throws IOException {
         super(client);
         this.server = server;
     }
 
-    public void receiveAction() throws IOException, ParseException {
+    public void receiveAction() throws IOException, ParseException, IllegalMoveException {
         ByteBuffer buffer = ByteBuffer.allocate(256);
         client.read(buffer);
-        String clientMessage = new String(buffer.array());
-        int newLinePos;
-        while ((newLinePos = clientMessage.indexOf(System.lineSeparator())) != -1) {
-            String action = clientMessage.substring(newLinePos);
-            clientMessage = clientMessage.substring(newLinePos + 1);
-            parseAction(action);
-        }
+        parseAction(new String(buffer.array()));
     }
 
 
-    private void parseAction(String actionJSON) throws ParseException, IOException {
+    private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException {
         JSONObject msg = (JSONObject) new JSONParser().parse(actionJSON);
         String action = (String) msg.get(TransportConstants.TRANSPORT_ACTION);
         if (action == null) {
             return;
         }
         switch (action) {
-            case TransportConstants.TRANSPORT_ACTION_LOGIN_OR_REGISTER:
+            case TRANSPORT_ACTION_LOGIN_OR_REGISTER:
                 loginOrRegister((String) msg.get(TransportConstants.TRANSPORT_TOKEN));
                 break;
-            case TransportConstants.TRANSPORT_ACTION_JOIN_GAME:
+            case TRANSPORT_ACTION_JOIN_GAME:
                 joinGame();
                 break;
-            case TransportConstants.TRANSPORT_ACTION_MOVE:
+            case TRANSPORT_ACTION_MOVE:
                 receiveMove(
                         AbstractPosition.fromString(((String) msg.get(TRANSPORT_ACTION_MOVE_FROM))),
                         AbstractPosition.fromString((String) msg.get(TRANSPORT_ACTION_MOVE_TO))
@@ -59,26 +54,41 @@ public class ServerTransport extends AbstractTransport {
     }
 
     void loginOrRegister(String userToken) throws IOException {
-        sendJSONMessage(RESPONSE_OK);
+        sendMessage(RESPONSE_OK.toJSONString());
     }
-    private void sendJSONMessage(JSONObject msg) throws IOException {
-        String s = msg.toJSONString();
-        client.write(ByteBuffer.wrap(s.getBytes()));
-    }
-
     private void joinGame() throws IOException {
         if (server.joinGameQueue.isEmpty()) {
             server.joinGameQueue.add(this);
         } else {
             ServerTransport black = server.joinGameQueue.poll();
             server.createGame(this, black);
-            sendJSONMessage(COLOR_WHITE);
-            black.sendJSONMessage(COLOR_BLACK);
+
+            sendMessage(COLOR_WHITE.toJSONString());
+            this.color = Table.Color.WHITE;
+            opponent = black;
+
+            black.sendMessage(COLOR_BLACK.toJSONString());
+            black.color = Table.Color.BLACK;
+            black.opponent = this;
         }
     }
 
     @Override
-    public void receiveMove(Position from, Position to) {
-        // TODO: Mekhrubon
+    public void receiveMove(Position from, Position to) throws IllegalMoveException, IOException, ParseException {
+        Table table = server.getGameTable(this);
+        table.makeMove(color, from, to);
+        switch (table.getCurrentState()) {
+            case CHECKMATE:
+                sendMessage(RESPONSE_CHECKMATE.toJSONString());
+                opponent.sendMessage(RESPONSE_CHECKMATE.toJSONString());
+                break;
+            case STALEMATE:
+                sendMessage(RESPONSE_STALEMATE.toJSONString());
+                opponent.sendMessage(RESPONSE_STALEMATE.toJSONString());
+                break;
+            default:
+                sendMessage(RESPONSE_OK.toJSONString());
+                opponent.sendMove(from, to);
+        }
     }
 }

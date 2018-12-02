@@ -1,5 +1,6 @@
 package transports;
 
+import model.AbstractPosition;
 import model.Position;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -24,17 +25,47 @@ public class ClientTransport extends AbstractTransport {
         sendMessageAndWaitForResponseOk(object.toJSONString());
     }
 
+    @Override
+    public void sendMove(Position from, Position to) throws IOException, ParseException {
+        super.sendMove(from, to);
+        JSONObject response = waitForMessage();
+        if (RESPONSE_CHECKMATE.equals(response)) {
+            // TODO: Finish with checkmate
+        } else if (RESPONSE_STALEMATE.equals(response)) {
+            // TODO: Finish with stalemate
+        } else if (RESPONSE_OK.equals(response)){
+            waitForMove();
+        } else {
+            throw new RuntimeException("[false]");
+        }
+    }
+
+    protected void waitForMove() throws IOException, ParseException {
+        JSONObject move = waitForMessage();
+        if (TRANSPORT_ACTION_MOVE.equals(move.get(TRANSPORT_ACTION))) {
+            receiveMove(
+                    AbstractPosition.fromString(((String) move.get(TRANSPORT_ACTION_MOVE_FROM))),
+                    AbstractPosition.fromString(((String) move.get(TRANSPORT_ACTION_MOVE_TO)))
+                    );
+        } else {
+            throw new RuntimeException("[false]");
+        }
+    }
+
     public void joinGame() throws IOException, ParseException {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
 
         JSONObject response = sendMessageAndWaitForResponse(object.toJSONString());
         if (COLOR_WHITE.equals(response)) {
-            // TODO: Mekhrubon
+            // TODO: Mekhrubon need to make a move
+
         } else if (COLOR_BLACK.equals(response)) {
             // TODO: Mekhrubon
+            waitForMove();
         } else {
-            // TODO: Mekhrubon
+            // TODO: Mekhrubon some error or what?
+            throw new RuntimeException("[false]");
         }
     }
 

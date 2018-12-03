@@ -16,20 +16,7 @@ class TableImpl : Table {
     val board: Array<Array<Figure?>> = Array(8) { Array(8) { null as Figure? } }
 
     init {
-        repeat(8) {
-            setFigure(Pawn(PositionImpl(1, it), Table.Color.WHITE))
-            setFigure(Pawn(PositionImpl(6, it), Table.Color.BLACK))
-        }
-
-        mirrorFigure(PositionImpl(0, 0)) { pos, color -> Rook(pos, color) }
-        mirrorFigure(PositionImpl(0, 1)) { pos, color -> Knight(pos, color) }
-        mirrorFigure(PositionImpl(0, 2)) { pos, color -> Bishop(pos, color) }
-
-        setFigure(King(Table.Color.WHITE))
-        setFigure(King(Table.Color.BLACK))
-
-        setFigure(Queen(Table.Color.WHITE))
-        setFigure(Queen(Table.Color.BLACK))
+        fill()
     }
 
 
@@ -50,6 +37,23 @@ class TableImpl : Table {
                 row[it] = null
             }
         }
+    }
+
+    fun fill() {
+        repeat(8) {
+            setFigure(Pawn(PositionImpl(1, it), Table.Color.WHITE))
+            setFigure(Pawn(PositionImpl(6, it), Table.Color.BLACK))
+        }
+
+        mirrorFigure(PositionImpl(0, 0)) { pos, color -> Rook(pos, color) }
+        mirrorFigure(PositionImpl(0, 1)) { pos, color -> Knight(pos, color) }
+        mirrorFigure(PositionImpl(0, 2)) { pos, color -> Bishop(pos, color) }
+
+        setFigure(King(Table.Color.WHITE))
+        setFigure(King(Table.Color.BLACK))
+
+        setFigure(Queen(Table.Color.WHITE))
+        setFigure(Queen(Table.Color.BLACK))
     }
 
     override fun getCurrentState() = state

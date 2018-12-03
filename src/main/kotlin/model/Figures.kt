@@ -13,8 +13,8 @@ sealed class FigureImpl(
         return position != null && directions.map { position plus it }.contains(position)
     }
 
-    override fun beats(position: Position?): Boolean {
-        return beatsImpl(mMoveDirections, position)
+    override fun beats(table: Table, position: Position): Boolean {
+        return getPossibleMoves(table).map { position plus it.toPair() }.contains(position)
     }
 
     override fun getColor(): Table.Color = mColor

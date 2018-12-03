@@ -181,12 +181,18 @@ public class Client implements AutoCloseable {
     }
 
     private Position parsePosition(String pos) throws IllegalMoveException {
-        char col = pos.charAt(0);
-        int row = Integer.parseInt(pos.substring(1, 2)) - 1;
-        if (col > 'h' || col < 'a' || row > 7 || row < 0) {
+        int row;
+        int column;
+        try {
+            char col = pos.charAt(0);
+            row = Integer.parseInt(pos.substring(1, 2)) - 1;
+            if (col > 'h' || col < 'a' || row > 7 || row < 0) {
+                throw new IllegalMoveException("Illegal string for move position: " + pos);
+            }
+            column = 'h' - col;
+        } catch (Exception e) {
             throw new IllegalMoveException("Illegal string for move position: " + pos);
         }
-        int column = 'h' - col;
         return new PositionImpl(row, column);
     }
 

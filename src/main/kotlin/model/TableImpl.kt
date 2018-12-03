@@ -100,7 +100,6 @@ class TableImpl : Table {
     }
 
     private infix fun Figure.moveTo(position: Position): Figure? {
-        setFigure(this, position)
         val otherFigure = getFigure(position)
         setFigure(this, position)
         otherFigure?.let {

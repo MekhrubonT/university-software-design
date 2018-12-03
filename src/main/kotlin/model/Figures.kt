@@ -181,7 +181,7 @@ class Queen(mPosition: Position, mColor: Table.Color) :
                 mColor,
                 ROOK_DIRS.plus(BISHOP_DIRS)) {
     constructor(mColor: Table.Color) : this(
-            PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 3),
+            PositionImpl(if (mColor == Table.Color.WHITE) 0 else 7, 4),
             mColor
     )
 

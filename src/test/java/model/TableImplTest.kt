@@ -22,22 +22,22 @@ class TableImplTest {
         @JvmStatic
         fun singleFigureParams(): Array<Array<out Any?>> = arrayOf(
                 arrayOf(
-                        Rook(PositionImpl(0, 0), Table.Color.WHITE),
+                        Rook(PositionImpl(0, 0), Color.WHITE),
                         PositionImpl(0, 7),
                         true,
                         null
                 ),
                 arrayOf(
-                        Rook(PositionImpl(0, 0), Table.Color.WHITE),
+                        Rook(PositionImpl(0, 0), Color.WHITE),
                         PositionImpl(1, 1),
                         false,
                         null
                 ),
                 arrayOf(
-                        Rook(PositionImpl(0, 0), Table.Color.WHITE),
+                        Rook(PositionImpl(0, 0), Color.WHITE),
                         PositionImpl(0, 7),
                         false,
-                        Pawn(PositionImpl(0, 1), Table.Color.WHITE)
+                        Pawn(PositionImpl(0, 1), Color.WHITE)
                 )
         )
     }
@@ -50,7 +50,7 @@ class TableImplTest {
         if (obstacle != null)
             table.setFigure(obstacle)
 
-        val move = { table.makeMove(Table.Color.WHITE, from, to) }
+        val move = { table.makeMove(Color.WHITE, from, to) }
         if (!isValid) {
             assertThrows<IllegalMoveException>(move)
         } else if (obstacle == null) {
@@ -65,11 +65,11 @@ class TableImplTest {
     @Test
     fun failEatOwnFigure() {
         val from = PositionImpl(2, 3)
-        table.setFigure(Pawn(from, Table.Color.BLACK))
+        table.setFigure(Pawn(from, Color.BLACK))
         val to = PositionImpl(2, 2)
-        table.setFigure(Pawn(to, Table.Color.BLACK))
+        table.setFigure(Pawn(to, Color.BLACK))
         assertThrows<IllegalMoveException> {
-            table.makeMove(Table.Color.BLACK, from, to)
+            table.makeMove(Color.BLACK, from, to)
         }
     }
 
@@ -77,23 +77,23 @@ class TableImplTest {
     @Test
     fun eatOtherFigure() {
         val from = PositionImpl(2, 2)
-        val whitePawn = Pawn(from, Table.Color.WHITE)
+        val whitePawn = Pawn(from, Color.WHITE)
         table.setFigure(whitePawn)
         val to = PositionImpl(3, 3)
-        table.setFigure(Pawn(to, Table.Color.BLACK))
+        table.setFigure(Pawn(to, Color.BLACK))
 
-        table.makeMove(Table.Color.WHITE, from, to)
+        table.makeMove(Color.WHITE, from, to)
         assertNull(table.getFigure(from))
         assertEquals(whitePawn, table.getFigure(to))
     }
 
     @Test
     internal fun successShortCastling() {
-        val king = King(Table.Color.WHITE)
+        val king = King(Color.WHITE)
         table.setFigure(king)
-        val rook = Rook(PositionImpl(0, 0), Table.Color.WHITE)
+        val rook = Rook(PositionImpl(0, 0), Color.WHITE)
         table.setFigure(rook)
-        table.makeMove(Table.Color.WHITE, king.position, PositionImpl(0, 1))
+        table.makeMove(Color.WHITE, king.position, PositionImpl(0, 1))
 
         assertNull(table.getFigure(0, 0))
         assertEquals(king, PositionImpl(0, 1))
@@ -103,11 +103,11 @@ class TableImplTest {
 
     @Test
     internal fun successEatOnHop() {
-        table.setFigure(Pawn(PositionImpl(1, 1), Table.Color.WHITE))
-        val blackPawn = Pawn(PositionImpl(3, 2), Table.Color.BLACK)
+        table.setFigure(Pawn(PositionImpl(1, 1), Color.WHITE))
+        val blackPawn = Pawn(PositionImpl(3, 2), Color.BLACK)
         table.setFigure(blackPawn)
-        table.makeMove(Table.Color.WHITE, PositionImpl(1, 1), PositionImpl(3, 1))
-        table.makeMove(Table.Color.BLACK, PositionImpl(3, 2), PositionImpl(2, 1))
+        table.makeMove(Color.WHITE, PositionImpl(1, 1), PositionImpl(3, 1))
+        table.makeMove(Color.BLACK, PositionImpl(3, 2), PositionImpl(2, 1))
 
         val figures = table.figures
         assertEquals(1, figures.size)
@@ -116,22 +116,36 @@ class TableImplTest {
 
     @Test
     internal fun reproduceNotRevertedMoves() {
-        val whitePawn = Pawn(PositionImpl(1, 0), Table.Color.WHITE)
+        val whitePawn = Pawn(PositionImpl(1, 0), Color.WHITE)
         table.setFigure(whitePawn)
-        val whiteKing = King(PositionImpl(0, 3), Table.Color.WHITE)
+        val whiteKing = King(PositionImpl(0, 3), Color.WHITE)
         table.setFigure(whiteKing)
-        val blackPawn = Pawn(PositionImpl(6, 0), Table.Color.BLACK)
+        val blackPawn = Pawn(PositionImpl(6, 0), Color.BLACK)
         table.setFigure(blackPawn)
-        val blackKing = King(PositionImpl(7, 3), Table.Color.BLACK)
+        val blackKing = King(PositionImpl(7, 3), Color.BLACK)
         table.setFigure(blackKing)
 
-        table.makeMove(Table.Color.WHITE, whitePawn.position, PositionImpl(2, 0))
+        table.makeMove(Color.WHITE, whitePawn.position, PositionImpl(2, 0))
 
         assertEquals(PositionImpl(2, 0), whitePawn.position)
         assertEquals(PositionImpl(0, 3), whiteKing.position)
         assertEquals(PositionImpl(6, 0), blackPawn.position)
         assertEquals(PositionImpl(7, 3), blackKing.position)
 
+    }
+
+    @Test
+    internal fun reproduceNoCheck() {
+        table.fill()
+        table.makeMove(Color.WHITE, PositionImpl(1, 4), PositionImpl(2, 4))
+        table.makeMove(Color.BLACK, PositionImpl(7, 1), PositionImpl(5, 2))
+        table.makeMove(Color.WHITE, PositionImpl(0, 3), PositionImpl(4, 7))
+        printBoard()
+        val position = table.kingsPositions[Color.BLACK]
+        assert(table.getFigure(4, 7)?.beats(table, position) == true)
+        assertThrows<IllegalMoveException> {
+            table.makeMove(Color.BLACK, PositionImpl(6, 5), PositionImpl(5, 5))
+        }
     }
 
     private fun printBoard() {

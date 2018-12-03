@@ -19,7 +19,4 @@ public interface Table {
 
     void makeMove(Color playerColor, Position from, Position to);
 
-    enum Color {
-        BLACK, WHITE
-    }
 }

@@ -3,13 +3,13 @@ package model
 class TableImpl : Table {
     var state = GameState.NONE
 
-    var turn = Table.Color.WHITE
+    var turn = Color.WHITE
 
-    val kingsPositions = mutableMapOf<Table.Color, Position>()
+    val kingsPositions = mutableMapOf<Color, Position>()
 
     val figuresByColor = mapOf(
-            Table.Color.BLACK to mutableSetOf<Figure>(),
-            Table.Color.WHITE to mutableSetOf())
+            Color.BLACK to mutableSetOf<Figure>(),
+            Color.WHITE to mutableSetOf())
 
     val figures = mutableSetOf<Figure>()
 
@@ -20,11 +20,11 @@ class TableImpl : Table {
     }
 
 
-    private fun mirrorFigure(position: Position, figureSupplier: (Position, Table.Color) -> Figure) {
-        setFigure(figureSupplier(position, Table.Color.WHITE))
-        setFigure(figureSupplier(PositionImpl(position.row, 7 - position.col), Table.Color.WHITE))
-        setFigure(figureSupplier(PositionImpl(7 - position.row, position.col), Table.Color.BLACK))
-        setFigure(figureSupplier(PositionImpl(7 - position.row, 7 - position.col), Table.Color.BLACK))
+    private fun mirrorFigure(position: Position, figureSupplier: (Position, Color) -> Figure) {
+        setFigure(figureSupplier(position, Color.WHITE))
+        setFigure(figureSupplier(PositionImpl(position.row, 7 - position.col), Color.WHITE))
+        setFigure(figureSupplier(PositionImpl(7 - position.row, position.col), Color.BLACK))
+        setFigure(figureSupplier(PositionImpl(7 - position.row, 7 - position.col), Color.BLACK))
     }
 
     fun clear() {
@@ -41,19 +41,19 @@ class TableImpl : Table {
 
     fun fill() {
         repeat(8) {
-            setFigure(Pawn(PositionImpl(1, it), Table.Color.WHITE))
-            setFigure(Pawn(PositionImpl(6, it), Table.Color.BLACK))
+            setFigure(Pawn(PositionImpl(1, it), Color.WHITE))
+            setFigure(Pawn(PositionImpl(6, it), Color.BLACK))
         }
 
         mirrorFigure(PositionImpl(0, 0)) { pos, color -> Rook(pos, color) }
         mirrorFigure(PositionImpl(0, 1)) { pos, color -> Knight(pos, color) }
         mirrorFigure(PositionImpl(0, 2)) { pos, color -> Bishop(pos, color) }
 
-        setFigure(King(Table.Color.WHITE))
-        setFigure(King(Table.Color.BLACK))
+        setFigure(King(Color.WHITE))
+        setFigure(King(Color.BLACK))
 
-        setFigure(Queen(Table.Color.WHITE))
-        setFigure(Queen(Table.Color.BLACK))
+        setFigure(Queen(Color.WHITE))
+        setFigure(Queen(Color.BLACK))
     }
 
     override fun getCurrentState() = state
@@ -71,9 +71,9 @@ class TableImpl : Table {
 
     override fun getAllFigures(): MutableList<Figure> = figures.toMutableList()
 
-    override fun getBlackFigures(): MutableList<Figure>? = figuresByColor[Table.Color.BLACK]?.toMutableList()
+    override fun getBlackFigures(): MutableList<Figure>? = figuresByColor[Color.BLACK]?.toMutableList()
 
-    override fun getWhiteFigures(): MutableList<Figure>? = figuresByColor[Table.Color.WHITE]?.toMutableList()
+    override fun getWhiteFigures(): MutableList<Figure>? = figuresByColor[Color.WHITE]?.toMutableList()
 
     private fun throwUnless(
             condition: Boolean,
@@ -82,14 +82,14 @@ class TableImpl : Table {
             throw exceptionSupplier.invoke()
     }
 
-    private fun isMoveFeasible(playerColor: Table.Color, from: Position, to: Position): Boolean =
+    private fun isMoveFeasible(playerColor: Color, from: Position, to: Position): Boolean =
             playerColor == turn &&
                     getFigure(from)?.isMine(playerColor) ?: false &&
                     !(getFigure(to)?.isMine(playerColor) ?: false)
 
-    private fun Table.Color.other() = when (this) {
-        Table.Color.BLACK -> Table.Color.WHITE
-        else -> Table.Color.BLACK
+    private fun Color.other() = when (this) {
+        Color.BLACK -> Color.WHITE
+        else -> Color.BLACK
     }
 
     private fun setFigure(figure: Figure, position: Position) {
@@ -120,9 +120,9 @@ class TableImpl : Table {
     }
 
     private fun isCurrentKingBeaten() = figuresByColor[turn.other()]?.asSequence()
-            ?.any { it.beats(kingsPositions[turn]) } != false
+            ?.any { it.beats(this, kingsPositions[turn]) } != false
 
-    override fun makeMove(playerColor: Table.Color, from: Position, to: Position) {
+    override fun makeMove(playerColor: Color, from: Position, to: Position) {
         val e = { IllegalMoveException("move from $from to $to by player $playerColor is impossible") }
         throwUnless(isMoveFeasible(playerColor, from, to), e)
         getFigure(from)?.let { figure ->
@@ -133,6 +133,7 @@ class TableImpl : Table {
             if (figure::class == King::class) {
                 kingsPositions[turn] = to
             }
+            figure.afterMove()
         }
         turn = turn.other()
         updateState()
@@ -151,19 +152,19 @@ class TableImpl : Table {
     }
 
     fun Figure.isAllowedMove(to: Position?): Boolean {
-        return getPossibleMoves(this@TableImpl).flatten().map { position plus it.toPair() }.contains(to)
+        return getPossibleMoves(this@TableImpl).map { position plus it.toPair() }.contains(to)
     }
 
 
     private fun Figure.hasMoves(): Boolean {
-        return getPossibleMoves(this@TableImpl).any { movesForDir ->
-            movesForDir.any { move ->
-                val to = position plus move.toPair()
-                to?.let { newPosition ->
-                    getFigure(newPosition)?.color != color && tryMove(this, position, newPosition, true)
-                } != false
-            }
+        return getPossibleMoves(this@TableImpl).any { move ->
+            val to = position plus move.toPair()
+            to?.let { newPosition ->
+                getFigure(newPosition)?.color != color &&
+                        tryMove(this, position, newPosition, true)
+            } != false
         }
+
     }
 
     private fun currentHasMoves() =
@@ -198,8 +199,11 @@ infix fun Position.plus(move: Pair<Int, Int>): Position? {
     return null
 }
 
-val N_ROWS = 8
+infix fun Figure.applyMove(move: Move): Position? =
+        move.figureShifts[this]?.let { position plus it }
 
-val N_COLS = 8
+const val N_ROWS = 8
+
+const val N_COLS = 8
 
 class IllegalMoveException(message: String) : Exception(message)

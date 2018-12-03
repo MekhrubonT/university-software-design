@@ -14,7 +14,7 @@ import java.util.List;
 public class Database {
     public static Player registerPlayer(String login, String password) throws IOException {
         int count = DatabaseHelper.databaseQuery("SELECT COUNT(*) FROM PLAYERS WHERE LOGIN='" + login + "'",
-                rs -> rs.next() ? rs.getInt("count") : 0);
+                rs -> rs.next() ? rs.getInt(1) : 0);
         if (count == 0) {
             DatabaseHelper.databaseUpdate("INSERT INTO PLAYERS " +
                     "(LOGIN, PASSWORD, RATING, WINS, DRAWS, LOSES) VALUES ('" + login + "','" + password + "',0,0,0,0)");

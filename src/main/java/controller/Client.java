@@ -1,7 +1,5 @@
 package controller;
 
-// TODO: need "model.Position from" everywhere to determine the move or model.Figure has info about its current position?
-
 import db.Database;
 import model.*;
 import org.apache.jasper.servlet.JspServlet;

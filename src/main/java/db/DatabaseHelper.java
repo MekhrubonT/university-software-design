@@ -7,11 +7,14 @@ import java.sql.*;
  * Created by -- on 20.10.2018.
  */
 public class DatabaseHelper {
-/*
+    private final static String URL = "jdbc:postgresql://192.168.1.35:5432/chess";
+    private final static String USER = "chessmaster";
+    private final static String PASSWORD = "chess";
+
+    private final static String LOCAL_URL = "jdbc:sqlite:test.db";
+
     private static void databaseRequest(CheckedConsumer<Statement> func) {
-        try (Connection c = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5555/chess", "chessmaster",
-                "chess")) {
+        try (Connection c = DriverManager.getConnection(LOCAL_URL, USER, PASSWORD)) {
             Statement stmt = c.createStatement();
 
             func.accept(stmt);
@@ -22,34 +25,7 @@ public class DatabaseHelper {
     }
 
     private static int databaseRequest(CheckedFunction<Statement, Integer> func) {
-        try (Connection c = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5555/chess", "chessmaster",
-                "chess")) {
-            Statement stmt = c.createStatement();
-
-            int res = func.apply(stmt);
-            stmt.close();
-            return res;
-        } catch (SQLException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-*/
-    // Uncomment these functions and comment former to work with local database
-
-    private static void databaseRequest(CheckedConsumer<Statement> func) {
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            Statement stmt = c.createStatement();
-
-            func.accept(stmt);
-            stmt.close();
-        } catch (SQLException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static int databaseRequest(CheckedFunction<Statement, Integer> func) {
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
+        try (Connection c = DriverManager.getConnection(LOCAL_URL, USER, PASSWORD)) {
             Statement stmt = c.createStatement();
 
             int res = func.apply(stmt);

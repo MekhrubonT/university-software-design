@@ -28,8 +28,10 @@ public class Client implements AutoCloseable {
     private Player player = null;
     private Table table = null;
     private GameResult result = null;
-    private final ClientTransport client;
-    private final Server server;
+    private  ClientTransport client;
+    private  Server server;
+
+    public Client(){}
 
     public Client(int uIPort, int serverPort) throws Exception {
         server = new Server(uIPort);
@@ -193,7 +195,7 @@ public class Client implements AutoCloseable {
     }
 
     public static void main(String[] args) throws Exception {
-        Database.createDatabase();
+        //Database.createDatabase();
         Server server = new Server(8085);
         server.setHandler(getServletContextHandler(getContext()));
         server.start();

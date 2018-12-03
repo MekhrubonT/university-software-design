@@ -27,7 +27,7 @@ public class Database {
 
     public static Player getPlayer(String login, String password) {
         int count = DatabaseHelper.databaseQuery("SELECT COUNT(*) FROM PLAYERS WHERE LOGIN='" + login + "' AND PASSWORD='" + password + "'",
-                rs -> rs.next() ? rs.getInt("count") : 0);
+                rs -> rs.next() ? rs.getInt(1) : 0);
         if (count == 0) {
             return Player.EMPTY_PLAYER;
         } else {

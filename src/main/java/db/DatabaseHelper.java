@@ -7,10 +7,10 @@ import java.sql.*;
  * Created by -- on 20.10.2018.
  */
 public class DatabaseHelper {
-
+/*
     private static void databaseRequest(CheckedConsumer<Statement> func) {
         try (Connection c = DriverManager.getConnection(
-                "jdbc:postgresql://192.168.1.45:5432/chess", "chessmaster",
+                "jdbc:postgresql://localhost:5555/chess", "chessmaster",
                 "chess")) {
             Statement stmt = c.createStatement();
 
@@ -23,7 +23,7 @@ public class DatabaseHelper {
 
     private static int databaseRequest(CheckedFunction<Statement, Integer> func) {
         try (Connection c = DriverManager.getConnection(
-                "jdbc:postgresql://192.168.1.45:5432/chess", "chessmaster",
+                "jdbc:postgresql://localhost:5555/chess", "chessmaster",
                 "chess")) {
             Statement stmt = c.createStatement();
 
@@ -34,10 +34,10 @@ public class DatabaseHelper {
             throw new RuntimeException(e);
         }
     }
-
+*/
     // Uncomment these functions and comment former to work with local database
 
-    /*private static void databaseRequest(CheckedConsumer<Statement> func) {
+    private static void databaseRequest(CheckedConsumer<Statement> func) {
         try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
             Statement stmt = c.createStatement();
 
@@ -58,7 +58,7 @@ public class DatabaseHelper {
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
-    }*/
+    }
 
     public static void databaseUpdate(String sql) {
         databaseRequest((Statement stmt) -> stmt.executeUpdate(sql));

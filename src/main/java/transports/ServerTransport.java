@@ -1,7 +1,8 @@
 package transports;
 
+import db.Database;
 import model.*;
-import controller.Server;
+import controller.ChessmateServer;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -13,19 +14,19 @@ import java.nio.channels.SocketChannel;
 import static transports.TransportConstants.*;
 
 public class ServerTransport extends AbstractTransport {
-    final Server server;
+    final ChessmateServer server;
     private Table.Color color;
     private AbstractTransport opponent;
 
-    public ServerTransport(SocketChannel client, Server server) throws IOException {
+    public ServerTransport(SocketChannel client, ChessmateServer server) throws IOException {
         super(client);
         this.server = server;
     }
 
     public void receiveAction() throws IOException, ParseException, IllegalMoveException {
         ByteBuffer buffer = ByteBuffer.allocate(256);
-        client.read(buffer);
-        parseAction(new String(buffer.array()));
+        int amount = client.read(buffer);
+        parseAction(new String(buffer.array(), 0, amount));
     }
 
 
@@ -36,9 +37,15 @@ public class ServerTransport extends AbstractTransport {
             return;
         }
         switch (action) {
-            case TRANSPORT_ACTION_LOGIN_OR_REGISTER:
-                loginOrRegister((String) msg.get(TransportConstants.TRANSPORT_TOKEN));
+            case TRANSPORT_ACTION_REGISTER:
+                register(
+                        (String) msg.get(TransportConstants.TRANSPORT_LOGIN),
+                        (String) msg.get(TransportConstants.TRANSPORT_PASSWORD));
                 break;
+            case TRANSPORT_ACTION_LOGIN:
+                login(
+                        (String) msg.get(TransportConstants.TRANSPORT_LOGIN),
+                        (String) msg.get(TransportConstants.TRANSPORT_PASSWORD));
             case TRANSPORT_ACTION_JOIN_GAME:
                 joinGame();
                 break;
@@ -53,8 +60,13 @@ public class ServerTransport extends AbstractTransport {
         }
     }
 
-    void loginOrRegister(String userToken) throws IOException {
-        sendMessage(RESPONSE_OK.toJSONString());
+    void register(String login, String password) throws IOException {
+        Player player = Database.registerPlayer(login, password);
+        sendMessage(player.toJson());
+    }
+    void login(String login, String password) throws IOException {
+        Player player = Database.getPlayer(login, password);
+        sendMessage(player.toJson());
     }
     private void joinGame() throws IOException {
         if (server.joinGameQueue.isEmpty()) {

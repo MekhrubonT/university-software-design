@@ -17,12 +17,13 @@ public class ClientTransport extends AbstractTransport {
         super(SocketChannel.open(new InetSocketAddress("localhost", port)));
     }
 
-    public void loginOrRegister(String hashedToken) throws IOException, ParseException {
+    public JSONObject register(String login, String password) throws IOException, ParseException {
         JSONObject object = new JSONObject();
-        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_LOGIN_OR_REGISTER);
-        object.put(TRANSPORT_TOKEN, hashedToken);
+        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_REGISTER);
+        object.put(TRANSPORT_LOGIN, login);
+        object.put(TRANSPORT_PASSWORD, password);
 
-        sendMessageAndWaitForResponseOk(object.toJSONString());
+        return sendMessageAndWaitForResponse(object.toJSONString());
     }
 
     @Override

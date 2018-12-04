@@ -15,14 +15,14 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-public class Server implements AutoCloseable {
+public class ChessmateServer implements AutoCloseable {
     private final Selector selector;
     private final ServerSocketChannel serverSocket;
     public final Queue<ServerTransport> joinGameQueue = new LinkedList<>();
     private final Map<SocketChannel, ServerTransport> clientsTransport = new HashMap<>();
     private final Map<Transport, Table> currentGames = new HashMap<>();
 
-    public Server(int port) throws IOException {
+    public ChessmateServer(int port) throws IOException {
         selector = Selector.open();
         serverSocket = ServerSocketChannel.open();
         serverSocket.bind(new InetSocketAddress("localhost", port));

@@ -6,6 +6,7 @@ import org.apache.jasper.servlet.JspServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.json.simple.parser.ParseException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,28 +23,22 @@ import web.WebConfig;
 import java.io.IOException;
 
 @Controller
-public class Client implements AutoCloseable {
+public class Client {
+    static public ClientTransport staticClientTransport;
+
     private Player player = null;
     private Table table = null;
     private GameResult result = null;
-    private  ClientTransport client;
-    private  Server server;
+    final private ClientTransport client;
 
-    public Client(){}
+    public Client() {
+        client = staticClientTransport;
+    }
 
-    public Client(int uIPort, int serverPort) throws Exception {
-        server = new Server(uIPort);
-        server.setHandler(getServletContextHandler(getContext()));
+    public static void init() throws Exception {
+        Server server = new Server(8085);
+        server.setHandler(getServletContextHandler(Client.getContext()));
         server.start();
-        client = new ClientTransport(serverPort); // TODO: change client action to actions through Transport
-    }
-
-    @Override
-    public void close() throws Exception {
-        client.close();
-    }
-
-    public void join() throws InterruptedException {
         server.join();
     }
 
@@ -109,7 +104,7 @@ public class Client implements AutoCloseable {
     public String login(@ModelAttribute("player") Player p, ModelMap map) {
         Player player = Database.getPlayer(p.getLogin(), p.getPassword());
         prepareModelMap(map, player);
-        if (player != Player.EMPTY_PLAYER) {
+        if (!Player.EMPTY_PLAYER.equals(player)) {
             this.player = player;
             return "main";
         } else {
@@ -118,10 +113,10 @@ public class Client implements AutoCloseable {
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public String register(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
-        Player player = Database.registerPlayer(p.getLogin(), p.getPassword());
+    public String register(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException {
+        Player player = Player.fromJson(client.register(p.getLogin(), p.getPassword()));
         prepareModelMap(map, player);
-        if (player != Player.EMPTY_PLAYER) {
+        if (!Player.EMPTY_PLAYER.equals(player)) {
             this.player = player;
             return "main";
         } else {
@@ -198,16 +193,7 @@ public class Client implements AutoCloseable {
         player.updateData(newData);
     }
 
-    public static void main(String[] args) throws Exception {
-        //Database.createDatabase();
-        Server server = new Server(8085);
-        server.setHandler(getServletContextHandler(getContext()));
-        server.start();
-        server.join();
-    }
-
     private static ServletContextHandler getServletContextHandler(WebApplicationContext context) throws IOException {
-
         ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         contextHandler.setContextPath("/");
 

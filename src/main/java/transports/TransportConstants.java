@@ -6,7 +6,8 @@ public class TransportConstants {
     public static final String TRANSPORT_ID = "id";
 
     public static final String TRANSPORT_ACTION = "action";
-    public static final String TRANSPORT_ACTION_LOGIN_OR_REGISTER = "login-or-register";
+    public static final String TRANSPORT_ACTION_REGISTER = "register";
+    public static final String TRANSPORT_ACTION_LOGIN = "login";
 
     public static final String TRANSPORT_ACTION_JOIN_GAME = "join-game";
     public static final Object TRANSPORT_ACTION_GAME_CREATED = "game-created";
@@ -18,14 +19,24 @@ public class TransportConstants {
     public static final String TRANSPORT_ACTION_MOVE_FROM = "move-from";
     public static final String TRANSPORT_ACTION_MOVE_TO = "move-to";
 
-    public static final String TRANSPORT_TOKEN = "token";
+    public static final String TRANSPORT_LOGIN = "login";
+    public static final String TRANSPORT_PASSWORD = "password";
+
+    public static final String TRANSPORT_PLAYER_LOGIN = "player-login";
+    public static final String TRANSPORT_PLAYER_PASSWORD = "player-password";
+    public static final String TRANSPORT_PLAYER_RATING = "rating";
+    public static final String TRANSPORT_PLAYER_WINS = "wins";
+    public static final String TRANSPORT_PLAYER_DRAWS = "draws";
+    public static final String TRANSPORT_PLAYER_LOSES = "loses";
 
     public static final String TRANSPORT_RESULT = "result";
     public static final String TRANSPORT_RESULT_OK = "result-ok";
+    public static final String TRANSPORT_RESULT_BAD = "result-bad";
     public static final String TRANSPORT_RESULT_CHECKMATE = "result-checkmate";
     public static final String TRANSPORT_RESULT_STALEMATE = "result-stalemate";
 
     public static final JSONObject RESPONSE_OK;
+    public static final JSONObject RESPONSE_BAD;
     public static final JSONObject RESPONSE_CHECKMATE;
     public static final JSONObject RESPONSE_STALEMATE;
     public static final JSONObject COLOR_WHITE;
@@ -34,6 +45,11 @@ public class TransportConstants {
         JSONObject responseOk = new JSONObject();
         responseOk.put(TRANSPORT_RESULT, TRANSPORT_RESULT_OK);
         RESPONSE_OK = responseOk;
+    }
+    static {
+        JSONObject responseBad = new JSONObject();
+        responseBad.put(TRANSPORT_RESULT, TRANSPORT_RESULT_BAD);
+        RESPONSE_BAD = responseBad;
     }
     static {
         JSONObject responeCheckMate = new JSONObject();

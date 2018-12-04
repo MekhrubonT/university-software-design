@@ -1,20 +1,10 @@
-import db.Database;
-import controller.Server;
 import controller.Client;
+import controller.ChessmateServer;
+import db.Database;
+import transports.ClientTransport;
 
 public class App {
-    enum ServerOrClient {
-        SERVER, CLIENT
-    }
-    static class Options {
-        ServerOrClient serverOrClient;
-        int port;
-
-        Options(ServerOrClient serverOrClient, int port) {
-            this.serverOrClient = serverOrClient;
-            this.port = port;
-        }
-    }
+    private static ClientTransport clientTransport;
 
     private static Options parseOptions(String[] args) {
         ServerOrClient serverOrClient = "server".equals(args[0]) ? ServerOrClient.SERVER : ServerOrClient.CLIENT;
@@ -27,27 +17,40 @@ public class App {
         System.out.println(options.serverOrClient + " " + options.port);
         switch (options.serverOrClient) {
             case SERVER:
-                runServer(options.port);
+                new App().runServer(options.port);
                 break;
             case CLIENT:
-                runClient(options.port);
+                new App().runClient(options.port);
                 break;
         }
     }
 
-    private static void runServer(int port) throws Exception {
+    private void runServer(int port) throws Exception {
         System.out.println("App.runServer");
         Database.createDatabase();
-        try (Server server = new Server(port)) {
+        try (ChessmateServer server = new ChessmateServer(port)) {
             server.run();
         }
     }
 
-    private static void runClient(int port) throws Exception {
-        System.out.println("App.runClient");
-        int uIPort = 8100;
-        try (Client client = new Client(uIPort, port)) {
-            client.join();
+    private void runClient(int port) throws Exception {
+        try (ClientTransport clientTransport = new ClientTransport(port)) {
+            Client.staticClientTransport = clientTransport;
+            Client.init();
+        }
+    }
+
+    enum ServerOrClient {
+        SERVER, CLIENT
+    }
+
+    static class Options {
+        ServerOrClient serverOrClient;
+        int port;
+
+        Options(ServerOrClient serverOrClient, int port) {
+            this.serverOrClient = serverOrClient;
+            this.port = port;
         }
     }
 }

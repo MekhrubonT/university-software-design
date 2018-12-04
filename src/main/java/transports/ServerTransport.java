@@ -37,6 +37,8 @@ public class ServerTransport extends AbstractTransport {
 
 
     private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException {
+        System.out.println("ServerTransport.parseAction");
+        System.out.println(actionJSON);
         JSONObject msg = (JSONObject) new JSONParser().parse(actionJSON);
         String action = (String) msg.get(TransportConstants.TRANSPORT_ACTION);
         if (action == null) {

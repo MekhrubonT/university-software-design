@@ -1,7 +1,9 @@
 package transports;
 
 import model.AbstractPosition;
+import model.IllegalMoveException;
 import model.Position;
+import model.Table;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
@@ -12,6 +14,7 @@ import java.nio.channels.SocketChannel;
 import static transports.TransportConstants.*;
 
 public class ClientTransport extends AbstractTransport {
+    private Table table;
 
 //    @Override
 //    public void close() throws Exception {
@@ -44,7 +47,7 @@ public class ClientTransport extends AbstractTransport {
     }
 
     @Override
-    public void sendMove(Position from, Position to) throws IOException, ParseException {
+    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
         super.sendMove(from, to);
         JSONObject response = waitForMessage();
         if (RESPONSE_CHECKMATE.equals(response)) {
@@ -58,7 +61,7 @@ public class ClientTransport extends AbstractTransport {
         }
     }
 
-    protected void waitForMove() throws IOException, ParseException {
+    public void waitForMove() throws IOException, ParseException, IllegalMoveException {
         JSONObject move = waitForMessage();
         if (TRANSPORT_ACTION_MOVE.equals(move.get(TRANSPORT_ACTION))) {
             receiveMove(
@@ -70,25 +73,25 @@ public class ClientTransport extends AbstractTransport {
         }
     }
 
-    public void joinGame() throws IOException, ParseException {
+    public Table.Color joinGame() throws IOException, ParseException {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
 
         JSONObject response = sendMessageAndWaitForResponse(object.toJSONString());
         if (COLOR_WHITE.equals(response)) {
-            // TODO: Mekhrubon need to make a move
-
+            return Table.Color.WHITE;
         } else if (COLOR_BLACK.equals(response)) {
-            // TODO: Mekhrubon
-            waitForMove();
+            return Table.Color.BLACK;
         } else {
-            // TODO: Mekhrubon some error or what?
             throw new RuntimeException("[false]");
         }
     }
 
     @Override
-    public void receiveMove(Position f, Position to) {
-        // TODO: Mekhrubon
+    public void receiveMove(Position f, Position to) throws IllegalMoveException {
+        table.makeMove(table.getCurrentTurn(), f, to);
+    }
+    public void setTable(Table table) {
+        this.table = table;
     }
 }

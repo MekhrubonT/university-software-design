@@ -36,10 +36,17 @@ public class Client {
     }
 
     public static void init() throws Exception {
-        Server server = new Server(8089);
-        server.setHandler(getServletContextHandler(Client.getContext()));
-        server.start();
-        server.join();
+        try {
+            Server server = new Server(8088);
+            server.setHandler(getServletContextHandler(Client.getContext()));
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            Server server = new Server(8089);
+            server.setHandler(getServletContextHandler(Client.getContext()));
+            server.start();
+            server.join();
+        }
     }
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
@@ -132,19 +139,26 @@ public class Client {
     }
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
-    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
+    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException, IllegalMoveException {
+        Table.Color color = client.joinGame();
         table = new TableImpl();
         result = null;
+        client.setTable(table);
+        if (color == Table.Color.BLACK) {
+            client.waitForMove();
+        }
+
         prepareModelMap(map, player, table, new RawMove(), "");
         return "game";
     }
 
     @RequestMapping(value = "/make_move", method = RequestMethod.POST)
-    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) {
+    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) throws IOException, ParseException {
         try {
             Position from = parsePosition(move.getFrom());
             Position to = parsePosition(move.getTo());
             table.makeMove(table.getCurrentTurn(), from, to);
+            client.sendMove(from, to);
         } catch (IllegalMoveException e) {
             prepareModelMap(map, player, table, new RawMove(), e.getMessage());
             return "game";

@@ -16,7 +16,7 @@ sealed class FigureImpl(
     }
 
     override fun beats(table: Table, position: Position?): Boolean {
-        return getPossibleMoves(table).filter { !it.isComposite() }.map { position?.plus(it.toPair()) }.contains(position)
+        return getPossibleMoves(table).filter { !it.isComposite() }.map { getPosition() plus it.toPair() }.contains(position)
     }
 
     override fun getColor(): Color = mColor

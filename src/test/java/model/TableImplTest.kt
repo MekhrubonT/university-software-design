@@ -40,11 +40,17 @@ class TableImplTest {
                         Pawn(PositionImpl(0, 1), Color.WHITE)
                 )
         )
+
+        @JvmStatic
+        fun beatParams() = arrayOf(
+                arrayOf(Queen(Color.WHITE), PositionImpl(1, 3), true),
+                arrayOf(Queen(Color.WHITE), PositionImpl(1, 2), true)
+        )
     }
 
     @ParameterizedTest
     @MethodSource("singleFigureParams")
-    internal fun testSingleFigure(figure: Figure, to: Position, isValid: Boolean, obstacle: Figure? = null) {
+    internal fun singleFigureMoves(figure: Figure, to: Position, isValid: Boolean, obstacle: Figure? = null) {
         val from = figure.position
         table.setFigure(figure)
         if (obstacle != null)
@@ -60,6 +66,13 @@ class TableImplTest {
         } else {
             assertEquals(figure, table.getFigure(from))
         }
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("beatParams")
+    internal fun beats(figure: Figure, position: Position, flag: Boolean) {
+        assert(flag == figure.beats(table, position))
     }
 
     @Test
@@ -141,8 +154,6 @@ class TableImplTest {
         table.makeMove(Color.BLACK, PositionImpl(7, 1), PositionImpl(5, 2))
         table.makeMove(Color.WHITE, PositionImpl(0, 3), PositionImpl(4, 7))
         printBoard()
-        val position = table.kingsPositions[Color.BLACK]
-        assert(table.getFigure(4, 7)?.beats(table, position) == true)
         assertThrows<IllegalMoveException> {
             table.makeMove(Color.BLACK, PositionImpl(6, 5), PositionImpl(5, 5))
         }

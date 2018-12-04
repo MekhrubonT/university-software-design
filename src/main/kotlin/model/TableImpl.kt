@@ -49,8 +49,12 @@ class TableImpl : Table {
         mirrorFigure(PositionImpl(0, 1)) { pos, color -> Knight(pos, color) }
         mirrorFigure(PositionImpl(0, 2)) { pos, color -> Bishop(pos, color) }
 
-        setFigure(King(Color.WHITE))
-        setFigure(King(Color.BLACK))
+        Color.values().forEach {
+            val king = King(it)
+            setFigure(king)
+            kingsPositions[it] = king.position
+        }
+
 
         setFigure(Queen(Color.WHITE))
         setFigure(Queen(Color.BLACK))

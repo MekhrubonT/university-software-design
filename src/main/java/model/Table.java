@@ -21,7 +21,4 @@ public interface Table {
 
     void makeMove(Color playerColor, Position from, Position to) throws IllegalMoveException;
 
-    enum Color {
-        BLACK, WHITE
-    }
 }

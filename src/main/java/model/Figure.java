@@ -3,19 +3,22 @@ package model;
 import kotlin.sequences.Sequence;
 
 public interface Figure {
-    boolean isAllowedMove(Position to);
+//    boolean isAllowedMove(Position to);
+    void afterMove();
 
-    boolean isMine(Table.Color playerColor);
+    boolean hasMoved();
 
-    Table.Color getColor();
+    boolean isMine(Color playerColor);
+
+    Color getColor();
 
     Position getPosition();
 
     void setPosition(Position to);
 
-    boolean beats(Position position);
+    boolean beats(Table table, Position position);
 
-    Sequence<Sequence<Move>> getPossibleMoves();
+    Sequence<Move> getPossibleMoves(Table table);
 
     String toString();
 

@@ -36,7 +36,7 @@ public class Client {
     }
 
     public static void init() throws Exception {
-        Server server = new Server(8085);
+        Server server = new Server(8089);
         server.setHandler(getServletContextHandler(Client.getContext()));
         server.start();
         server.join();

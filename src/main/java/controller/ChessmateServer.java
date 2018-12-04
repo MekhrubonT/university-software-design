@@ -41,7 +41,13 @@ public class ChessmateServer implements AutoCloseable {
     private void receiveClientAction(SelectionKey key)
             throws IOException, ParseException, IllegalMoveException {
         SocketChannel client = (SocketChannel) key.channel();
-        clientsTransport.get(client).receiveAction();
+        ServerTransport serverTransport = clientsTransport.get(client);
+        if (!serverTransport.receiveAction()) {
+            currentGames.remove(serverTransport);
+            clientsTransport.remove(client);
+            client.keyFor(selector).cancel();
+            // TODO: opponent wins a game
+        }
     }
 
 
@@ -53,7 +59,6 @@ public class ChessmateServer implements AutoCloseable {
             while (iter.hasNext()) {
 
                 SelectionKey key = iter.next();
-
                 if (key.isAcceptable()) {
                     acceptClient(selector, serverSocket);
                 }

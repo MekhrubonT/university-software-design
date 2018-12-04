@@ -13,6 +13,23 @@ import static transports.TransportConstants.*;
 
 public class ClientTransport extends AbstractTransport {
 
+//    @Override
+//    public void close() throws Exception {
+//        if (client != null) {
+//            try {
+//                closeConnection();
+//            } catch (Exception ignored) {
+//            }
+//        }
+//        super.close();
+//    }
+//
+//    private void closeConnection() throws IOException {
+//        JSONObject object = new JSONObject();
+//        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_CLOSE);
+//        sendMessage(object.toJSONString());
+//    }
+
     public ClientTransport(int port) throws IOException {
         super(SocketChannel.open(new InetSocketAddress("localhost", port)));
     }

@@ -17,16 +17,22 @@ public class ServerTransport extends AbstractTransport {
     final ChessmateServer server;
     private Table.Color color;
     private AbstractTransport opponent;
+    private boolean finished = false;
 
     public ServerTransport(SocketChannel client, ChessmateServer server) throws IOException {
         super(client);
         this.server = server;
     }
 
-    public void receiveAction() throws IOException, ParseException, IllegalMoveException {
+    public boolean receiveAction() throws IOException, ParseException, IllegalMoveException {
         ByteBuffer buffer = ByteBuffer.allocate(256);
         int amount = client.read(buffer);
+        if (amount == -1) {
+            finished = true;
+            return false;
+        }
         parseAction(new String(buffer.array(), 0, amount));
+        return true;
     }
 
 
@@ -56,7 +62,7 @@ public class ServerTransport extends AbstractTransport {
                 );
                 break;
             default:
-                throw new RuntimeException("Bad action exception");
+                throw new RuntimeException("Bad action exception: " + action);
         }
     }
 
@@ -69,6 +75,9 @@ public class ServerTransport extends AbstractTransport {
         sendMessage(player.toJson());
     }
     private void joinGame() throws IOException {
+        while (!server.joinGameQueue.isEmpty() && server.joinGameQueue.peek().finished) {
+            server.joinGameQueue.poll();
+        }
         if (server.joinGameQueue.isEmpty()) {
             server.joinGameQueue.add(this);
         } else {

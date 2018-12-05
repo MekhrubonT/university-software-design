@@ -62,6 +62,14 @@ sealed class FigureImpl(
     override fun toString(): String {
         return "${this::class.java.name}(mPosition=$mPosition, mColor=$mColor)"
     }
+
+    override fun representation(): String {
+        return "${color.toString().toLowerCase()}_${this::class.java.simpleName.toLowerCase()}"
+    }
+
+    override fun colorToString(): String {
+        return if (mColor == Color.BLACK) "black" else "white"
+    }
 }
 
 private infix fun Pair<Int, Int>.plus(dir: Pair<Int, Int>): Pair<Int, Int> {
@@ -136,7 +144,8 @@ class Pawn(mPosition: Position, mColor: Color) :
         return mMoveDirections.asSequence()
                 .map { singleFigureMove(this, it) }
                 .plus(mBeatDirections.map { singleFigureMove(this, it) })
-                .plus(sequenceOf(singleFigureMove(this, Pair(2, 0))).filter { !moved })
+                .plus(sequenceOf(
+                        singleFigureMove(this, Pair(if (color == Color.BLACK) -2 else 2, 0))).filter { !moved })
     }
 }
 

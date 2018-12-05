@@ -1,4 +1,3 @@
-<%@ page import="model.Figure" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core_rt" %>
@@ -21,7 +20,7 @@
                     <td style="padding: 0px">
 
                         <c:choose>
-                            <c:when test="${table.getFigure(i, j) == null}">
+                            <c:when test="${table.getFigure(i, 7 - j) == null}">
                                 <img style="height: 50px" src="
                         <c:choose><c:when test="${(i+j) % 2 == 0}"><c:url value="img/empty_white.png"/></c:when>
                         <c:otherwise><c:url value="img/empty_black.png"/></c:otherwise></c:choose>"
@@ -29,8 +28,8 @@
                             </c:when>
                             <c:otherwise>
                                 <img style="height: 50px" src="
-                        <c:choose><c:when test="${(i+j) % 2 == 0}"><c:url value="img/${table.getFigure(i, j).colorToString()}_${table.getFigure(i, j).toString()}_white.png"/></c:when>
-                        <c:otherwise><c:url value="img/${table.getFigure(i, j).colorToString()}_${table.getFigure(i, j).toString()}_black.png"/></c:otherwise></c:choose>"
+                        <c:choose><c:when test="${(i+j) % 2 == 0}"><c:url value="img/${table.getFigure(i, 7 - j).representation()}_white.png"/></c:when>
+                        <c:otherwise><c:url value="img/${table.getFigure(i, 7 - j).representation()}_black.png"/></c:otherwise></c:choose>"
                                 />
                             </c:otherwise>
                         </c:choose>

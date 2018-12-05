@@ -1,7 +1,7 @@
 package transports;
 
-import model.*;
 import controller.Server;
+import model.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,7 +14,7 @@ import static transports.TransportConstants.*;
 
 public class ServerTransport extends AbstractTransport {
     final Server server;
-    private Table.Color color;
+    private Color color;
     private AbstractTransport opponent;
 
     public ServerTransport(SocketChannel client, Server server) throws IOException {
@@ -64,11 +64,11 @@ public class ServerTransport extends AbstractTransport {
             server.createGame(this, black);
 
             sendMessage(COLOR_WHITE.toJSONString());
-            this.color = Table.Color.WHITE;
+            this.color = Color.WHITE;
             opponent = black;
 
             black.sendMessage(COLOR_BLACK.toJSONString());
-            black.color = Table.Color.BLACK;
+            black.color = Color.BLACK;
             black.opponent = this;
         }
     }

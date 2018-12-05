@@ -187,7 +187,7 @@ public class Client implements AutoCloseable {
             if (col > 'h' || col < 'a' || row > 7 || row < 0) {
                 throw new IllegalMoveException("Illegal string for move position: " + pos);
             }
-            column = 'h' - col;
+            column = col - 'a';
         } catch (Exception e) {
             throw new IllegalMoveException("Illegal string for move position: " + pos);
         }

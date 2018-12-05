@@ -3,7 +3,6 @@ package model;
 import kotlin.sequences.Sequence;
 
 public interface Figure {
-//    boolean isAllowedMove(Position to);
     void afterMove();
 
     boolean hasMoved();
@@ -20,7 +19,7 @@ public interface Figure {
 
     Sequence<Move> getPossibleMoves(Table table);
 
-    String toString();
+    String representation();
 
     String colorToString();
 }

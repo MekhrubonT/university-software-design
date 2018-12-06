@@ -28,7 +28,7 @@ public class Options {
                 }
                 appType = ServerOrClient.SERVER;
                 i++;
-            } else if (args[i].equals("-c") || args[i].equals("-client")) {
+            } else if (args[i].equals("-c") || args[i].equals("-connection")) {
                 if (appType != null) {
                     throw new OptionsParseException("Redefinition of app type: " + args[i] + ", previous type: " + appType);
                 }
@@ -79,13 +79,13 @@ public class Options {
     public static void printHelpMessage() {
         System.out.println("The chessmate app run arguments: \n" +
                 "-server | -s              - to run server app\n" +
-                "-client | -c              - to run client app\n" +
+                "-connection | -c              - to run connection app\n" +
                 "-port num | -pnum         - to set ran application port, num - port number\n" +
-                "-server_port num | -spnum - server port for client to connect, only client apps\n" +
+                "-server_port num | -spnum - server port for connection to connect, only connection apps\n" +
                 "Examples:\n" +
                 "java App -s -p8081\n" +
                 "java App -c -sp8081 -port 8088\n" +
-                "java App -client -server_port 8081 -port 8089\n"
+                "java App -connection -server_port 8081 -port 8089\n"
         );
     }
 }

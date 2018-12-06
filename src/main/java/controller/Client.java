@@ -123,7 +123,7 @@ public class Client {
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public String register(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException {
-        Player player = Player.fromJson(client.register(p.getLogin(), p.getPassword()));
+        Player player = Player.fromJSON(client.register(p.getLogin(), p.getPassword()));
         prepareModelMap(map, player);
         if (!Player.EMPTY_PLAYER.equals(player)) {
             this.player = player;

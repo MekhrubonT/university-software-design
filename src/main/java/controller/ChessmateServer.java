@@ -1,5 +1,6 @@
 package controller;// Artem: model.Table is kept bot on server and clients. Send only moves.
 
+import model.Color;
 import model.IllegalMoveException;
 import model.Table;
 import model.TableImpl;
@@ -18,7 +19,7 @@ import java.util.*;
 public class ChessmateServer implements AutoCloseable {
     private final Selector selector;
     private final ServerSocketChannel serverSocket;
-    public final Queue<ServerTransport> joinGameQueue = new LinkedList<>();
+    private final Queue<ServerTransport> joinGameQueue = new LinkedList<>();
     private final Map<SocketChannel, ServerTransport> clientsTransport = new HashMap<>();
     private final Map<Transport, Table> currentGames = new HashMap<>();
 
@@ -42,12 +43,7 @@ public class ChessmateServer implements AutoCloseable {
             throws IOException, ParseException, IllegalMoveException {
         SocketChannel client = (SocketChannel) key.channel();
         ServerTransport serverTransport = clientsTransport.get(client);
-        if (!serverTransport.receiveAction()) {
-            currentGames.remove(serverTransport);
-            clientsTransport.remove(client);
-            client.keyFor(selector).cancel();
-            // TODO: opponent wins a game
-        }
+        serverTransport.receiveAction();
     }
 
 
@@ -57,12 +53,10 @@ public class ChessmateServer implements AutoCloseable {
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
             while (iter.hasNext()) {
-
                 SelectionKey key = iter.next();
                 if (key.isAcceptable()) {
                     acceptClient(selector, serverSocket);
                 }
-
                 if (key.isReadable()) {
                     receiveClientAction(key);
                 }
@@ -72,10 +66,32 @@ public class ChessmateServer implements AutoCloseable {
         }
     }
 
-    public void createGame(Transport white, Transport black) {
-        TableImpl table = new TableImpl();
-        currentGames.put(white, table);
-        currentGames.put(black, table);
+    public void joinGameRequest(ServerTransport black) throws IOException {
+        while (!joinGameQueue.isEmpty() && !joinGameQueue.peek().getIsStillJoiningGame()) {
+            joinGameQueue.poll();
+        }
+        if (joinGameQueue.isEmpty()) {
+            joinGameQueue.add(black);
+        } else {
+            ServerTransport white = joinGameQueue.poll();
+            TableImpl table = new TableImpl();
+            currentGames.put(white, table);
+            currentGames.put(black, table);
+
+            white.startGame(Color.WHITE, black);
+            black.startGame(Color.BLACK, white);
+        }
+    }
+
+    public void disconnect(ServerTransport client) {
+        currentGames.remove(client);
+        clientsTransport.remove(client.getSocket());
+        client.getSocket().keyFor(selector).cancel();
+        // TODO: opponent wins a game
+    }
+
+    public void logout(ServerTransport client) {
+        // TODO
     }
 
     @Override

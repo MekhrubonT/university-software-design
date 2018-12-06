@@ -17,7 +17,7 @@ public class Player {
 
     public Player() {}
 
-    public String toJson() {
+    public JSONObject toJSON() {
         JSONObject player = new JSONObject();
         player.put(TRANSPORT_PLAYER_LOGIN, login);
         player.put(TRANSPORT_PLAYER_PASSWORD, login);
@@ -25,9 +25,9 @@ public class Player {
         player.put(TRANSPORT_PLAYER_WINS, wins);
         player.put(TRANSPORT_PLAYER_DRAWS, draws);
         player.put(TRANSPORT_PLAYER_LOSES, loses);
-        return player.toJSONString();
+        return player;
     }
-    public static Player fromJson(JSONObject player) {
+    public static Player fromJSON(JSONObject player) {
         System.out.println(player.toJSONString());
         String login = (String) player.get(TRANSPORT_PLAYER_LOGIN);
         String password = (String) player.get(TRANSPORT_PLAYER_PASSWORD);

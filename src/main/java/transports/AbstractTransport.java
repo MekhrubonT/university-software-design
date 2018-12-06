@@ -5,6 +5,7 @@ import model.Position;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -12,36 +13,34 @@ import java.nio.channels.SocketChannel;
 import static transports.TransportConstants.*;
 
 public abstract class AbstractTransport implements Transport, AutoCloseable {
-    final protected SocketChannel client;
+    final protected SocketChannel connection;
 
     public AbstractTransport(SocketChannel client) throws IOException {
-        this.client = client;
+        this.connection = client;
     }
 
     public void sendMessage(String msg) throws IOException {
         ByteBuffer wrap = ByteBuffer.wrap(msg.getBytes());
-        client.write(wrap);
+        connection.write(wrap);
+    }
+    public void sendMessageJSON(JSONObject msgJSON) throws IOException {
+        sendMessage(msgJSON.toJSONString());
     }
 
-    public boolean sendMessageAndWaitForResponseOk(String msg) throws IOException, ParseException {
-        JSONObject response = sendMessageAndWaitForResponse(msg);
-        return RESPONSE_OK.equals(response);
+    public JSONObject sendMessageAndWaitForResponseJSON(JSONObject msgJSON) throws IOException, ParseException {
+        sendMessageJSON(msgJSON);
+        return waitForMessageJSON();
     }
 
-    public JSONObject sendMessageAndWaitForResponse(String msg) throws IOException, ParseException {
-        sendMessage(msg);
-        return waitForMessage();
-    }
-
-    public JSONObject waitForMessage() throws IOException, ParseException {
+    public JSONObject waitForMessageJSON() throws IOException, ParseException {
         ByteBuffer wrap = ByteBuffer.allocate(256);
-        int amount = client.read(wrap);
+        int amount = connection.read(wrap);
         return (JSONObject) new JSONParser().parse(new String(wrap.array(), 0, amount));
     }
 
     @Override
     public void close() throws Exception {
-        client.close();
+        connection.close();
     }
 
     public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
@@ -50,6 +49,6 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         object.put(TRANSPORT_ACTION_MOVE_FROM, from.toString());
         object.put(TRANSPORT_ACTION_MOVE_TO, to.toString());
 
-        sendMessage(object.toString());
+        sendMessageJSON(object);
     }
 }

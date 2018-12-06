@@ -41,6 +41,7 @@ public class TransportConstants {
     public static final JSONObject RESPONSE_STALEMATE;
     public static final JSONObject COLOR_WHITE;
     public static final JSONObject COLOR_BLACK;
+
     static {
         JSONObject responseOk = new JSONObject();
         responseOk.put(TRANSPORT_RESULT, TRANSPORT_RESULT_OK);
@@ -61,16 +62,12 @@ public class TransportConstants {
         responeStaleMate.put(TRANSPORT_RESULT, TRANSPORT_RESULT_STALEMATE);
         RESPONSE_STALEMATE = responeStaleMate;
     }
-
-
-
     static {
         JSONObject colorWhite = new JSONObject();
         colorWhite.put(TRANSPORT_ACTION, TRANSPORT_ACTION_GAME_CREATED);
         colorWhite.put(TRANSPORT_COLOR, TRANSPORT_RESULT_COLOR_WHITE);
         COLOR_WHITE = colorWhite;
     }
-
     static {
         JSONObject colorBlack = new JSONObject();
         colorBlack.put(TRANSPORT_ACTION, TRANSPORT_ACTION_GAME_CREATED);

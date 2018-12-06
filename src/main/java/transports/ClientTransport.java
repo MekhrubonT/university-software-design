@@ -15,7 +15,7 @@ public class ClientTransport extends AbstractTransport {
 
 //    @Override
 //    public void close() throws Exception {
-//        if (client != null) {
+//        if (connection != null) {
 //            try {
 //                closeConnection();
 //            } catch (Exception ignored) {
@@ -27,7 +27,7 @@ public class ClientTransport extends AbstractTransport {
 //    private void closeConnection() throws IOException {
 //        JSONObject object = new JSONObject();
 //        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_CLOSE);
-//        sendMessage(object.toJSONString());
+//        sendMessageJSON(object.toJSONString());
 //    }
 
     public ClientTransport(int port) throws IOException {
@@ -40,13 +40,13 @@ public class ClientTransport extends AbstractTransport {
         object.put(TRANSPORT_LOGIN, login);
         object.put(TRANSPORT_PASSWORD, password);
 
-        return sendMessageAndWaitForResponse(object.toJSONString());
+        return sendMessageAndWaitForResponseJSON(object);
     }
 
     @Override
     public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
         super.sendMove(from, to);
-        JSONObject response = waitForMessage();
+        JSONObject response = waitForMessageJSON();
         if (RESPONSE_CHECKMATE.equals(response)) {
         } else if (RESPONSE_STALEMATE.equals(response)) {
         } else if (RESPONSE_OK.equals(response)){
@@ -57,7 +57,7 @@ public class ClientTransport extends AbstractTransport {
     }
 
     public void waitForMove() throws IOException, ParseException, IllegalMoveException {
-        JSONObject move = waitForMessage();
+        JSONObject move = waitForMessageJSON();
         if (TRANSPORT_ACTION_MOVE.equals(move.get(TRANSPORT_ACTION))) {
             receiveMove(
                     AbstractPosition.fromString(((String) move.get(TRANSPORT_ACTION_MOVE_FROM))),
@@ -72,7 +72,7 @@ public class ClientTransport extends AbstractTransport {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
 
-        JSONObject response = sendMessageAndWaitForResponse(object.toJSONString());
+        JSONObject response = sendMessageAndWaitForResponseJSON(object);
         if (COLOR_WHITE.equals(response)) {
             return Color.WHITE;
         } else if (COLOR_BLACK.equals(response)) {

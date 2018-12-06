@@ -44,11 +44,11 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
     }
 
     public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
-        JSONObject object = new JSONObject();
-        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_MOVE);
-        object.put(TRANSPORT_ACTION_MOVE_FROM, from.toString());
-        object.put(TRANSPORT_ACTION_MOVE_TO, to.toString());
+        JSONObject move = new JSONObject();
+        move.put(TRANSPORT_ACTION, TRANSPORT_ACTION_MOVE);
+        move.put(TRANSPORT_ACTION_MOVE_FROM, from.toString());
+        move.put(TRANSPORT_ACTION_MOVE_TO, to.toString());
 
-        sendMessageJSON(object);
+        sendMessageJSON(move);
     }
 }

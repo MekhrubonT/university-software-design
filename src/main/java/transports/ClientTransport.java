@@ -21,22 +21,31 @@ public class ClientTransport extends AbstractTransport {
         this.table = table;
     }
 
-    public JSONObject register(String login, String password) throws IOException, ParseException {
-        JSONObject object = new JSONObject();
-        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_REGISTER);
-        object.put(TRANSPORT_LOGIN, login);
-        object.put(TRANSPORT_PASSWORD, password);
-
-        return sendMessageAndWaitForResponseJSON(object);
+    public JSONObject register(String username, String password) throws IOException, ParseException {
+        return getPlayer(username, password, TRANSPORT_ACTION_REGISTER);
     }
+
+    public JSONObject login(String username, String password) throws IOException, ParseException {
+        return getPlayer(username, password, TRANSPORT_ACTION_LOGIN);
+    }
+
+    private JSONObject getPlayer(String username, String password, String transportAction) throws IOException, ParseException {
+        JSONObject login = new JSONObject();
+        login.put(TRANSPORT_ACTION, transportAction);
+        login.put(TRANSPORT_LOGIN, username);
+        login.put(TRANSPORT_PASSWORD, password);
+
+        return sendMessageAndWaitForResponseJSON(login);
+    }
+
 
     @Override
     public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
         super.sendMove(from, to);
         JSONObject response = waitForMessageJSON();
-        if (RESPONSE_CHECKMATE.equals(response)) { // ignored
-        } else if (RESPONSE_STALEMATE.equals(response)) { // ignored
-        } else if (RESPONSE_OK.equals(response)){
+        if (JSON_RESPONSE_CHECKMATE.equals(response)) { // ignored
+        } else if (JSON_RESPONSE_STALEMATE.equals(response)) { // ignored
+        } else if (JSON_RESPONSE_OK.equals(response)){
             waitForMove();
         } else {
             throw new RuntimeException("[false]");
@@ -56,10 +65,10 @@ public class ClientTransport extends AbstractTransport {
     }
 
     public Color joinGame() throws IOException, ParseException {
-        JSONObject response = sendMessageAndWaitForResponseJSON(JOIN_GAME_REQUEST);
-        if (COLOR_WHITE.equals(response)) {
+        JSONObject response = sendMessageAndWaitForResponseJSON(JSON_JOIN_GAME_REQUEST);
+        if (JSON_COLOR_WHITE.equals(response)) {
             return Color.WHITE;
-        } else if (COLOR_BLACK.equals(response)) {
+        } else if (JSON_COLOR_BLACK.equals(response)) {
             return Color.BLACK;
         } else {
             throw new RuntimeException("[false]");
@@ -69,5 +78,10 @@ public class ClientTransport extends AbstractTransport {
     @Override
     public void receiveMove(Position f, Position to) throws IllegalMoveException {
         table.makeMove(table.getCurrentTurn(), f, to);
+    }
+
+    public void logout() throws IOException {
+        table = null;
+        sendMessageJSON(JSON_LOGOUT);
     }
 }

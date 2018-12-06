@@ -28,11 +28,10 @@ import java.util.concurrent.Executors;
 @Controller
 public class ChessmateClient {
     static public ClientTransport staticClientTransport;
-
+    final private ClientTransport client;
     private Player player = null;
     private Table table = null;
     private GameResult result = null;
-    final private ClientTransport client;
     private volatile Color playerColor = null;
     private ExecutorService executors = Executors.newFixedThreadPool(1);
 
@@ -46,6 +45,26 @@ public class ChessmateClient {
         server.setHandler(getServletContextHandler(ChessmateClient.getContext()));
         server.start();
         server.join();
+    }
+
+    private static ServletContextHandler getServletContextHandler(WebApplicationContext context) throws IOException {
+        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        contextHandler.setContextPath("/");
+
+        contextHandler.addServlet(new ServletHolder(new JspServlet()), "*.jsp");
+        contextHandler.addServlet(new ServletHolder(new DispatcherServlet(context)), "/");
+
+        contextHandler.addEventListener(new ContextLoaderListener(context));
+        contextHandler.setResourceBase(new ClassPathResource(".").getURI().toString());
+        contextHandler.setClassLoader(Thread.currentThread().getContextClassLoader());
+
+        return contextHandler;
+    }
+
+    private static WebApplicationContext getContext() {
+        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+        context.register(WebConfig.class);
+        return context;
     }
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
@@ -110,8 +129,8 @@ public class ChessmateClient {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public String login(@ModelAttribute("player") Player p, ModelMap map) {
-        Player player = Database.getPlayer(p.getLogin(), p.getPassword());
+    public String login(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException {
+        Player player = Player.fromJSON(client.login(p.getLogin(), p.getPassword()));
         prepareModelMap(map, player);
         if (!Player.EMPTY_PLAYER.equals(player)) {
             this.player = player;
@@ -137,6 +156,7 @@ public class ChessmateClient {
     public String logout(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
         // TODO если игрок вышел, то хорошо бы сообщить серверу, чтобы он обработал это событие
         // TODO например, если идет игра, послал бы сопернику какой-нибудь флаг
+        client.logout();
         player = null;
         table = null;
         result = null;
@@ -169,7 +189,7 @@ public class ChessmateClient {
         if (playerColor != null) {
             // TODO: check if other player found and get playerColor
             prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-            if (playerColor == Color.WHITE){
+            if (playerColor == Color.WHITE) {
                 return "game";
             } else {
                 executors.submit(() -> {
@@ -231,7 +251,7 @@ public class ChessmateClient {
                 Database.updatePlayer(player);
                 prepareModelMap(map, player, table, result, playerColor);
                 return "after_game";
-               default:
+            default:
                 return "";
         }
     }
@@ -292,26 +312,6 @@ public class ChessmateClient {
 
     void updatePlayerData(Player newData) {
         player.updateData(newData);
-    }
-
-    private static ServletContextHandler getServletContextHandler(WebApplicationContext context) throws IOException {
-        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        contextHandler.setContextPath("/");
-
-        contextHandler.addServlet(new ServletHolder(new JspServlet()), "*.jsp");
-        contextHandler.addServlet(new ServletHolder(new DispatcherServlet(context)), "/");
-
-        contextHandler.addEventListener(new ContextLoaderListener(context));
-        contextHandler.setResourceBase(new ClassPathResource(".").getURI().toString());
-        contextHandler.setClassLoader(Thread.currentThread().getContextClassLoader());
-
-        return contextHandler;
-    }
-
-    private static WebApplicationContext getContext() {
-        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register(WebConfig.class);
-        return context;
     }
 
     private void prepareModelMap(ModelMap map, Player player) {

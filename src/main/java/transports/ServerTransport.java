@@ -93,7 +93,7 @@ public class ServerTransport extends AbstractTransport {
         System.out.println("ServerTransport.startGame");
         this.color = color;
         this.opponent = opponent;
-        sendMessageJSON(color == Color.WHITE ? COLOR_WHITE : COLOR_BLACK);
+        sendMessageJSON(color == Color.WHITE ? JSON_COLOR_WHITE : JSON_COLOR_BLACK);
     }
     public void finishGame() {
         this.color = null;
@@ -114,20 +114,20 @@ public class ServerTransport extends AbstractTransport {
                 player.addWin();
                 opponent.player.addLose();
 
-                sendMessageJSON(RESPONSE_CHECKMATE);
-                opponent.sendMessageJSON(RESPONSE_CHECKMATE);
+                sendMessageJSON(JSON_RESPONSE_CHECKMATE);
+                opponent.sendMessageJSON(JSON_RESPONSE_CHECKMATE);
                 finishGame();
                 break;
             case STALEMATE:
                 player.addDraw();
                 opponent.player.addDraw();
 
-                sendMessageJSON(RESPONSE_STALEMATE);
-                opponent.sendMessageJSON(RESPONSE_STALEMATE);
+                sendMessageJSON(JSON_RESPONSE_STALEMATE);
+                opponent.sendMessageJSON(JSON_RESPONSE_STALEMATE);
                 finishGame();
                 break;
             default:
-                sendMessageJSON(RESPONSE_OK);
+                sendMessageJSON(JSON_RESPONSE_OK);
                 opponent.sendMove(from, to);
         }
     }

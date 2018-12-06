@@ -57,6 +57,10 @@ public class ServerTransport extends AbstractTransport {
                         (String) msgJSON.get(TransportConstants.TRANSPORT_LOGIN),
                         (String) msgJSON.get(TransportConstants.TRANSPORT_PASSWORD)
                 );
+                break;
+            case TRANSPORT_ACTION_LOGOUT:
+                logout();
+                break;
             case TRANSPORT_ACTION_JOIN_GAME:
                 joinGame();
                 break;
@@ -69,6 +73,15 @@ public class ServerTransport extends AbstractTransport {
             default:
                 throw new RuntimeException("Bad action exception: " + action);
         }
+    }
+
+    private void logout() {
+        if (color != null) {
+            finishGame();
+        } else {
+            isStillJoiningGame = false;
+        }
+        server.logout(this);
     }
 
     void register(String login, String password) throws IOException {
@@ -98,6 +111,7 @@ public class ServerTransport extends AbstractTransport {
     public void finishGame() {
         this.color = null;
         this.opponent = null;
+        // TODO:
     }
 
     public boolean getIsStillJoiningGame() {

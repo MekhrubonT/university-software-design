@@ -73,6 +73,9 @@ public class Client {
 
     @RequestMapping(value = "/goto_main", method = RequestMethod.POST)
     public String gotoMain(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
+        table = null;
+        result = null;
+        playerColor = null;
         prepareModelMap(map, player);
         return "main";
     }
@@ -162,7 +165,11 @@ public class Client {
         if (true) {
             // TODO: check if other player found and get playerColor
             prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-            return "game";
+            if (playerColor == Color.WHITE){
+                return "game";
+            } else {
+                return "move_wait";
+            }
         } else {
             prepareModelMap(map, player, table, new RawMove(), "");
             return "rival_wait";

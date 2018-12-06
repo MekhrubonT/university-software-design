@@ -159,9 +159,13 @@ public class Client implements AutoCloseable {
     public String rivalWait(@ModelAttribute("player") Player p, ModelMap map) {
         if (true) {
             // TODO: check if other player found and get playerColor
-            playerColor = Color.WHITE;
+            playerColor = Color.BLACK;
             prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-            return "game";
+            if (playerColor == Color.WHITE){
+                return "game";
+            } else {
+                return "move_wait";
+            }
         } else {
             prepareModelMap(map, player, table, new RawMove(), "");
             return "rival_wait";

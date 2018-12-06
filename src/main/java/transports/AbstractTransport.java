@@ -1,7 +1,6 @@
 package transports;
 
-import model.AbstractPosition;
-import model.Figure;
+import model.IllegalMoveException;
 import model.Position;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,12 +23,9 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         client.write(wrap);
     }
 
-    public void sendMessageAndWaitForResponseOk(String msg) throws IOException, ParseException {
+    public boolean sendMessageAndWaitForResponseOk(String msg) throws IOException, ParseException {
         JSONObject response = sendMessageAndWaitForResponse(msg);
-
-        if (!RESPONSE_OK.equals(response)) {
-            throw new RuntimeException((String) response.get(TRANSPORT_RESULT));
-        }
+        return RESPONSE_OK.equals(response);
     }
 
     public JSONObject sendMessageAndWaitForResponse(String msg) throws IOException, ParseException {
@@ -37,10 +33,10 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         return waitForMessage();
     }
 
-    protected JSONObject waitForMessage() throws IOException, ParseException {
+    public JSONObject waitForMessage() throws IOException, ParseException {
         ByteBuffer wrap = ByteBuffer.allocate(256);
-        client.read(wrap);
-        return (JSONObject) new JSONParser().parse(wrap.toString());
+        int amount = client.read(wrap);
+        return (JSONObject) new JSONParser().parse(new String(wrap.array(), 0, amount));
     }
 
     @Override
@@ -48,7 +44,7 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         client.close();
     }
 
-    public void sendMove(Position from, Position to) throws IOException, ParseException {
+    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_MOVE);
         object.put(TRANSPORT_ACTION_MOVE_FROM, from.toString());

@@ -6,6 +6,7 @@ import org.apache.jasper.servlet.JspServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.json.simple.parser.ParseException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -21,32 +22,36 @@ import web.WebConfig;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Controller
-public class Client implements AutoCloseable {
+public class Client {
+    static public ClientTransport staticClientTransport;
+
     private Player player = null;
     private Table table = null;
     private GameResult result = null;
-    private ClientTransport client;
-    private Server server;
-    private Color playerColor = null;
+    final private ClientTransport client;
+    private volatile Color playerColor = null;
+    ExecutorService executors = Executors.newFixedThreadPool(1);
 
-    public Client(){}
-
-    public Client(int uIPort, int serverPort) throws Exception {
-        server = new Server(uIPort);
-        server.setHandler(getServletContextHandler(getContext()));
-        server.start();
-        client = new ClientTransport(serverPort); // TODO: change client action to actions through Transport
+    public Client() {
+        client = staticClientTransport;
     }
 
-    @Override
-    public void close() throws Exception {
-        client.close();
-    }
-
-    public void join() throws InterruptedException {
-        server.join();
+    public static void init() throws Exception {
+        try {
+            Server server = new Server(8088);
+            server.setHandler(getServletContextHandler(Client.getContext()));
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            Server server = new Server(8089);
+            server.setHandler(getServletContextHandler(Client.getContext()));
+            server.start();
+            server.join();
+        }
     }
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
@@ -114,7 +119,7 @@ public class Client implements AutoCloseable {
     public String login(@ModelAttribute("player") Player p, ModelMap map) {
         Player player = Database.getPlayer(p.getLogin(), p.getPassword());
         prepareModelMap(map, player);
-        if (player != Player.EMPTY_PLAYER) {
+        if (!Player.EMPTY_PLAYER.equals(player)) {
             this.player = player;
             return "main";
         } else {
@@ -123,10 +128,10 @@ public class Client implements AutoCloseable {
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public String register(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
-        Player player = Database.registerPlayer(p.getLogin(), p.getPassword());
+    public String register(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException {
+        Player player = Player.fromJson(client.register(p.getLogin(), p.getPassword()));
         prepareModelMap(map, player);
-        if (player != Player.EMPTY_PLAYER) {
+        if (!Player.EMPTY_PLAYER.equals(player)) {
             this.player = player;
             return "main";
         } else {
@@ -147,9 +152,20 @@ public class Client implements AutoCloseable {
     }
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
-    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
+    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException, IllegalMoveException {
         table = new TableImpl();
         result = null;
+        client.setTable(table);
+        executors.submit(() -> {
+            try {
+                playerColor = client.joinGame();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        });
+
         prepareModelMap(map, player, table, new RawMove(), "");
         // TODO Here new game button was pressed and need to send request to server
         return "rival_wait";
@@ -157,13 +173,23 @@ public class Client implements AutoCloseable {
 
     @RequestMapping(value = "/rival_wait", method = RequestMethod.POST)
     public String rivalWait(@ModelAttribute("player") Player p, ModelMap map) {
-        if (true) {
+        if (playerColor != null) {
             // TODO: check if other player found and get playerColor
-            playerColor = Color.BLACK;
             prepareModelMap(map, player, table, playerColor, new RawMove(), "");
             if (playerColor == Color.WHITE){
                 return "game";
             } else {
+                executors.submit(() -> {
+                    try {
+                        client.waitForMove();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    } catch (IllegalMoveException e) {
+                        e.printStackTrace();
+                    }
+                });
                 return "move_wait";
             }
         } else {
@@ -173,16 +199,26 @@ public class Client implements AutoCloseable {
     }
 
     @RequestMapping(value = "/make_move", method = RequestMethod.POST)
-    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) {
+    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) throws IOException, ParseException {
         try {
             Position from = parsePosition(move.getFrom());
             Position to = parsePosition(move.getTo());
             table.makeMove(playerColor, from, to);
+            executors.submit(() -> {
+                try {
+                    client.sendMove(from, to);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                } catch (IllegalMoveException e) {
+                    e.printStackTrace();
+                }
+            });
         } catch (IllegalMoveException e) {
             prepareModelMap(map, player, table, playerColor, new RawMove(), e.getMessage());
             return "game";
         }
-        // TODO Here move is successful, send it to server
         switch (table.getCurrentState()) {
             case NONE:
                 prepareModelMap(map, player, table, playerColor, new RawMove(), "");
@@ -202,17 +238,14 @@ public class Client implements AutoCloseable {
                 Database.updatePlayer(player);
                 prepareModelMap(map, player, table, result, playerColor);
                 return "after_game";
-            default:
+               default:
                 return "";
         }
     }
 
     @RequestMapping(value = "/move_wait", method = RequestMethod.POST)
     public String moveWait(ModelMap map) {
-        if (true) {
-            // TODO check if other player made move and then update table
-            table = table; // TODO table = getTableFromServer();
-
+        if (table.getCurrentTurn() == playerColor) {
             switch (table.getCurrentState()) {
                 case NONE:
                     prepareModelMap(map, player, table, playerColor, new RawMove(), "");
@@ -236,6 +269,7 @@ public class Client implements AutoCloseable {
                     return "";
             }
         } else {
+            prepareModelMap(map, player, table, playerColor, new RawMove(), "");
             return "move_wait";
         }
     }
@@ -267,16 +301,7 @@ public class Client implements AutoCloseable {
         player.updateData(newData);
     }
 
-    public static void main(String[] args) throws Exception {
-        //Database.createDatabase();
-        Server server = new Server(8085);
-        server.setHandler(getServletContextHandler(getContext()));
-        server.start();
-        server.join();
-    }
-
     private static ServletContextHandler getServletContextHandler(WebApplicationContext context) throws IOException {
-
         ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         contextHandler.setContextPath("/");
 

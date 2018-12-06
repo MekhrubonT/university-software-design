@@ -15,14 +15,14 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-public class Server implements AutoCloseable {
+public class ChessmateServer implements AutoCloseable {
     private final Selector selector;
     private final ServerSocketChannel serverSocket;
     public final Queue<ServerTransport> joinGameQueue = new LinkedList<>();
     private final Map<SocketChannel, ServerTransport> clientsTransport = new HashMap<>();
     private final Map<Transport, Table> currentGames = new HashMap<>();
 
-    public Server(int port) throws IOException {
+    public ChessmateServer(int port) throws IOException {
         selector = Selector.open();
         serverSocket = ServerSocketChannel.open();
         serverSocket.bind(new InetSocketAddress("localhost", port));
@@ -41,7 +41,13 @@ public class Server implements AutoCloseable {
     private void receiveClientAction(SelectionKey key)
             throws IOException, ParseException, IllegalMoveException {
         SocketChannel client = (SocketChannel) key.channel();
-        clientsTransport.get(client).receiveAction();
+        ServerTransport serverTransport = clientsTransport.get(client);
+        if (!serverTransport.receiveAction()) {
+            currentGames.remove(serverTransport);
+            clientsTransport.remove(client);
+            client.keyFor(selector).cancel();
+            // TODO: opponent wins a game
+        }
     }
 
 
@@ -53,7 +59,6 @@ public class Server implements AutoCloseable {
             while (iter.hasNext()) {
 
                 SelectionKey key = iter.next();
-
                 if (key.isAcceptable()) {
                     acceptClient(selector, serverSocket);
                 }

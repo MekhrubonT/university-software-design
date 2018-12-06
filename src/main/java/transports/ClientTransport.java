@@ -1,7 +1,6 @@
 package transports;
 
-import model.AbstractPosition;
-import model.Position;
+import model.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
@@ -12,21 +11,40 @@ import java.nio.channels.SocketChannel;
 import static transports.TransportConstants.*;
 
 public class ClientTransport extends AbstractTransport {
+    private Table table;
+
+//    @Override
+//    public void close() throws Exception {
+//        if (client != null) {
+//            try {
+//                closeConnection();
+//            } catch (Exception ignored) {
+//            }
+//        }
+//        super.close();
+//    }
+//
+//    private void closeConnection() throws IOException {
+//        JSONObject object = new JSONObject();
+//        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_CLOSE);
+//        sendMessage(object.toJSONString());
+//    }
 
     public ClientTransport(int port) throws IOException {
         super(SocketChannel.open(new InetSocketAddress("localhost", port)));
     }
 
-    public void loginOrRegister(String hashedToken) throws IOException, ParseException {
+    public JSONObject register(String login, String password) throws IOException, ParseException {
         JSONObject object = new JSONObject();
-        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_LOGIN_OR_REGISTER);
-        object.put(TRANSPORT_TOKEN, hashedToken);
+        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_REGISTER);
+        object.put(TRANSPORT_LOGIN, login);
+        object.put(TRANSPORT_PASSWORD, password);
 
-        sendMessageAndWaitForResponseOk(object.toJSONString());
+        return sendMessageAndWaitForResponse(object.toJSONString());
     }
 
     @Override
-    public void sendMove(Position from, Position to) throws IOException, ParseException {
+    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
         super.sendMove(from, to);
         JSONObject response = waitForMessage();
         if (RESPONSE_CHECKMATE.equals(response)) {
@@ -40,7 +58,7 @@ public class ClientTransport extends AbstractTransport {
         }
     }
 
-    protected void waitForMove() throws IOException, ParseException {
+    public void waitForMove() throws IOException, ParseException, IllegalMoveException {
         JSONObject move = waitForMessage();
         if (TRANSPORT_ACTION_MOVE.equals(move.get(TRANSPORT_ACTION))) {
             receiveMove(
@@ -52,25 +70,25 @@ public class ClientTransport extends AbstractTransport {
         }
     }
 
-    public void joinGame() throws IOException, ParseException {
+    public Color joinGame() throws IOException, ParseException {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
 
         JSONObject response = sendMessageAndWaitForResponse(object.toJSONString());
         if (COLOR_WHITE.equals(response)) {
-            // TODO: Mekhrubon need to make a move
-
+            return Color.WHITE;
         } else if (COLOR_BLACK.equals(response)) {
-            // TODO: Mekhrubon
-            waitForMove();
+            return Color.BLACK;
         } else {
-            // TODO: Mekhrubon some error or what?
             throw new RuntimeException("[false]");
         }
     }
 
     @Override
-    public void receiveMove(Position f, Position to) {
-        // TODO: Mekhrubon
+    public void receiveMove(Position f, Position to) throws IllegalMoveException {
+        table.makeMove(table.getCurrentTurn(), f, to);
+    }
+    public void setTable(Table table) {
+        this.table = table;
     }
 }

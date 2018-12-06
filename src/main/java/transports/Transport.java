@@ -10,7 +10,7 @@ import java.io.IOException;
 public interface Transport {
     void receiveMove(Position f, Position to) throws IllegalMoveException, IOException, ParseException;
 
-    void sendMove(Position f, Position to) throws IOException, ParseException;
+    void sendMove(Position f, Position to) throws IOException, ParseException, IllegalMoveException;
 
 //    void sendTable(model.Table t);
 

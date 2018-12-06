@@ -1,6 +1,6 @@
 package model
 
-class PositionImpl(row: Int, column: Int) : Position {
+class PositionImpl(row: Int, column: Int) : AbstractPosition() {
     private val coordinates = Pair(row, column)
 
     init {
@@ -13,10 +13,6 @@ class PositionImpl(row: Int, column: Int) : Position {
     override fun getRow() = coordinates.first
 
     override fun getCol() = coordinates.second
-
-    override fun toString(): String {
-        return "PositionImpl(coordinates=$coordinates)"
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

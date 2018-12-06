@@ -41,6 +41,7 @@ public class TransportConstants {
     public static final JSONObject RESPONSE_STALEMATE;
     public static final JSONObject COLOR_WHITE;
     public static final JSONObject COLOR_BLACK;
+    public static final JSONObject JOIN_GAME_REQUEST;
 
     static {
         JSONObject responseOk = new JSONObject();
@@ -73,5 +74,10 @@ public class TransportConstants {
         colorBlack.put(TRANSPORT_ACTION, TRANSPORT_ACTION_GAME_CREATED);
         colorBlack.put(TRANSPORT_COLOR, TRANSPORT_RESULT_COLOR_BLACK);
         COLOR_BLACK = colorBlack;
+    }
+    static {
+        JSONObject joinGameRequest = new JSONObject();
+        joinGameRequest.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
+        JOIN_GAME_REQUEST = joinGameRequest;
     }
 }

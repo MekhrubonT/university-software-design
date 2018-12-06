@@ -13,25 +13,12 @@ import static transports.TransportConstants.*;
 public class ClientTransport extends AbstractTransport {
     private Table table;
 
-//    @Override
-//    public void close() throws Exception {
-//        if (connection != null) {
-//            try {
-//                closeConnection();
-//            } catch (Exception ignored) {
-//            }
-//        }
-//        super.close();
-//    }
-//
-//    private void closeConnection() throws IOException {
-//        JSONObject object = new JSONObject();
-//        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_CLOSE);
-//        sendMessageJSON(object.toJSONString());
-//    }
-
     public ClientTransport(int port) throws IOException {
         super(SocketChannel.open(new InetSocketAddress("localhost", port)));
+    }
+
+    public void setTable(Table table) {
+        this.table = table;
     }
 
     public JSONObject register(String login, String password) throws IOException, ParseException {
@@ -47,8 +34,8 @@ public class ClientTransport extends AbstractTransport {
     public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
         super.sendMove(from, to);
         JSONObject response = waitForMessageJSON();
-        if (RESPONSE_CHECKMATE.equals(response)) {
-        } else if (RESPONSE_STALEMATE.equals(response)) {
+        if (RESPONSE_CHECKMATE.equals(response)) { // ignored
+        } else if (RESPONSE_STALEMATE.equals(response)) { // ignored
         } else if (RESPONSE_OK.equals(response)){
             waitForMove();
         } else {
@@ -69,10 +56,7 @@ public class ClientTransport extends AbstractTransport {
     }
 
     public Color joinGame() throws IOException, ParseException {
-        JSONObject object = new JSONObject();
-        object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
-
-        JSONObject response = sendMessageAndWaitForResponseJSON(object);
+        JSONObject response = sendMessageAndWaitForResponseJSON(JOIN_GAME_REQUEST);
         if (COLOR_WHITE.equals(response)) {
             return Color.WHITE;
         } else if (COLOR_BLACK.equals(response)) {
@@ -85,8 +69,5 @@ public class ClientTransport extends AbstractTransport {
     @Override
     public void receiveMove(Position f, Position to) throws IllegalMoveException {
         table.makeMove(table.getCurrentTurn(), f, to);
-    }
-    public void setTable(Table table) {
-        this.table = table;
     }
 }

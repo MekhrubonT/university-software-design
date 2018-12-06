@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Controller
-public class Client {
+public class ChessmateClient {
     static public ClientTransport staticClientTransport;
 
     private Player player = null;
@@ -36,14 +36,14 @@ public class Client {
     private volatile Color playerColor = null;
     private ExecutorService executors = Executors.newFixedThreadPool(1);
 
-    public Client() {
+    public ChessmateClient() {
         client = staticClientTransport;
     }
 
     public static void init(ClientTransport clientTransport, int uiPort) throws Exception {
         staticClientTransport = clientTransport;
         Server server = new Server(uiPort);
-        server.setHandler(getServletContextHandler(Client.getContext()));
+        server.setHandler(getServletContextHandler(ChessmateClient.getContext()));
         server.start();
         server.join();
     }

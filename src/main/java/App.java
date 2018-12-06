@@ -1,16 +1,12 @@
-import controller.Client;
+import controller.ChessmateClient;
 import controller.ChessmateServer;
 import db.Database;
-import org.json.simple.parser.ParseException;
 import transports.ClientTransport;
 import utils.Options;
 import utils.OptionsParseException;
 
 import java.net.BindException;
 import java.net.ConnectException;
-
-import static utils.Options.ServerOrClient.CLIENT;
-import static utils.Options.ServerOrClient.SERVER;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -44,7 +40,7 @@ public class App {
 
     private void runClient(int serverPort, int uiPort) throws Exception {
         try (ClientTransport clientTransport = new ClientTransport(serverPort)) {
-            Client.init(clientTransport, uiPort);
+            ChessmateClient.init(clientTransport, uiPort);
         }
     }
 }

@@ -11,28 +11,23 @@
 <body>
 
 <table align="center">
-    <form:form modelAttribute="player" method="POST" action="/new-game">
+    <form:form modelAttribute="player" method="POST" action="/rival_wait">
         <tr>
-            <td><label>Игрок:</label></td>
-            <td>${player.getLogin()}</td>
-        </tr>
-        <tr>
-            <td><label>Рейтинг:</label></td>
-            <td>${player.getRating()}</td>
-        </tr>
-        <tr>
-            <td><input type="submit" value="Новая игра"></td>
-        </tr>
-    </form:form>
-        <tr>
-            <td>
-                <form:form modelAttribute="player" method="POST" action="/stats">
-                    <input type="submit" value="Статистика">
-                </form:form>
+            <td align = center>
+                <h3 align="center">Ожидание соперника</h3>
             </td>
         </tr>
         <tr>
-            <td>
+            <td align = center>
+                <img style="height: 50px" src="<c:url value="img/loading.gif"/>"/>
+            </td>
+        </tr>
+        <tr>
+            <td align = center><input type="submit" value="Обновить"></td>
+        </tr>
+    </form:form>
+        <tr>
+            <td align = center>
                 <form:form modelAttribute="player" method="POST" action="/logout">
                     <input type="submit" value="Выйти">
                 </form:form>

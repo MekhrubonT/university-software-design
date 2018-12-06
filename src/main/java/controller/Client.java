@@ -21,6 +21,7 @@ import transports.ClientTransport;
 import web.WebConfig;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 public class Client {
@@ -30,6 +31,7 @@ public class Client {
     private Table table = null;
     private GameResult result = null;
     final private ClientTransport client;
+    private Color playerColor = null;
 
     public Client() {
         client = staticClientTransport;
@@ -71,7 +73,7 @@ public class Client {
 
     @RequestMapping(value = "/goto_main", method = RequestMethod.POST)
     public String gotoMain(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
-        prepareModelMap(map, p);
+        prepareModelMap(map, player);
         return "main";
     }
 
@@ -133,23 +135,38 @@ public class Client {
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     public String logout(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
+        // TODO если игрок вышел, то хорошо бы сообщить серверу, чтобы он обработал это событие
+        // TODO например, если идет игра, послал бы сопернику какой-нибудь флаг
         player = null;
+        table = null;
+        result = null;
+        playerColor = null;
         prepareModelMap(map, new Player(null, null));
         return "index";
     }
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
     public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException, IllegalMoveException {
-        Table.Color color = client.joinGame();
+        playerColor = client.joinGame();
         table = new TableImpl();
         result = null;
         client.setTable(table);
-        if (color == Table.Color.BLACK) {
-            client.waitForMove();
-        }
 
         prepareModelMap(map, player, table, new RawMove(), "");
-        return "game";
+        // TODO Here new game button was pressed and need to send request to server
+        return "rival_wait";
+    }
+
+    @RequestMapping(value = "/rival_wait", method = RequestMethod.POST)
+    public String rivalWait(@ModelAttribute("player") Player p, ModelMap map) {
+        if (true) {
+            // TODO: check if other player found and get playerColor
+            prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+            return "game";
+        } else {
+            prepareModelMap(map, player, table, new RawMove(), "");
+            return "rival_wait";
+        }
     }
 
     @RequestMapping(value = "/make_move", method = RequestMethod.POST)
@@ -157,34 +174,74 @@ public class Client {
         try {
             Position from = parsePosition(move.getFrom());
             Position to = parsePosition(move.getTo());
-            table.makeMove(table.getCurrentTurn(), from, to);
+            table.makeMove(playerColor, from, to);
             client.sendMove(from, to);
         } catch (IllegalMoveException e) {
-            prepareModelMap(map, player, table, new RawMove(), e.getMessage());
+            prepareModelMap(map, player, table, playerColor, new RawMove(), e.getMessage());
             return "game";
         }
         switch (table.getCurrentState()) {
             case NONE:
-                prepareModelMap(map, player, table, new RawMove(), "");
-                return "game";
+                prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+                return "move_wait";
             case CHECK:
-                prepareModelMap(map, player, table, new RawMove(), "");
-                return "game";
+                prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+                return "move_wait";
             case CHECKMATE:
                 result = GameResult.WIN;
                 player.addWin();
                 Database.updatePlayer(player);
-                prepareModelMap(map, player, table, result);
+                prepareModelMap(map, player, table, result, playerColor);
                 return "after_game";
             case STALEMATE:
                 result = GameResult.DRAW;
                 player.addDraw();
                 Database.updatePlayer(player);
-                prepareModelMap(map, player, table, result);
+                prepareModelMap(map, player, table, result, playerColor);
                 return "after_game";
             default:
                 return "";
         }
+    }
+
+    @RequestMapping(value = "/move_wait", method = RequestMethod.POST)
+    public String moveWait(ModelMap map) {
+        if (true) {
+            // TODO check if other player made move and then update table
+            table = table; // TODO table = getTableFromServer();
+
+            switch (table.getCurrentState()) {
+                case NONE:
+                    prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+                    return "game";
+                case CHECK:
+                    prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+                    return "game";
+                case CHECKMATE:
+                    result = GameResult.LOSE;
+                    player.addLose();
+                    Database.updatePlayer(player);
+                    prepareModelMap(map, player, table, result, playerColor);
+                    return "after_game";
+                case STALEMATE:
+                    result = GameResult.DRAW;
+                    player.addDraw();
+                    Database.updatePlayer(player);
+                    prepareModelMap(map, player, table, result, playerColor);
+                    return "after_game";
+                default:
+                    return "";
+            }
+        } else {
+            return "move_wait";
+        }
+    }
+
+    @RequestMapping(value = "/stats", method = RequestMethod.POST)
+    public String getStats(ModelMap map) {
+        List<Player> top = Database.getTop();
+        prepareModelMap(map, top);
+        return "stats";
     }
 
     private Position parsePosition(String pos) throws IllegalMoveException {
@@ -196,7 +253,7 @@ public class Client {
             if (col > 'h' || col < 'a' || row > 7 || row < 0) {
                 throw new IllegalMoveException("Illegal string for move position: " + pos);
             }
-            column = 'h' - col;
+            column = col - 'a';
         } catch (Exception e) {
             throw new IllegalMoveException("Illegal string for move position: " + pos);
         }
@@ -231,15 +288,28 @@ public class Client {
         map.addAttribute("player", player);
     }
 
-    private void prepareModelMap(ModelMap map, Player player, Table table, GameResult result) {
+    private void prepareModelMap(ModelMap map, List<Player> top) {
+        map.addAttribute("top", top);
+    }
+
+    private void prepareModelMap(ModelMap map, Player player, Table table, GameResult result, Color playerColor) {
         map.addAttribute("player", player);
         map.addAttribute("table", table);
         map.addAttribute("result", result);
+        map.addAttribute("color", playerColor);
     }
 
     private void prepareModelMap(ModelMap map, Player player, Table table, RawMove move, String exception) {
         map.addAttribute("player", player);
         map.addAttribute("table", table);
+        map.addAttribute("move", move);
+        map.addAttribute("exception", exception);
+    }
+
+    private void prepareModelMap(ModelMap map, Player player, Table table, Color playerColor, RawMove move, String exception) {
+        map.addAttribute("player", player);
+        map.addAttribute("table", table);
+        map.addAttribute("color", playerColor);
         map.addAttribute("move", move);
         map.addAttribute("exception", exception);
     }

@@ -15,7 +15,7 @@ import static transports.TransportConstants.*;
 
 public class ServerTransport extends AbstractTransport {
     final ChessmateServer server;
-    private Table.Color color;
+    private Color color;
     private AbstractTransport opponent;
     private boolean finished = false;
 
@@ -87,11 +87,11 @@ public class ServerTransport extends AbstractTransport {
             server.createGame(this, black);
 
             sendMessage(COLOR_WHITE.toJSONString());
-            this.color = Table.Color.WHITE;
+            this.color = Color.WHITE;
             opponent = black;
 
             black.sendMessage(COLOR_BLACK.toJSONString());
-            black.color = Table.Color.BLACK;
+            black.color = Color.BLACK;
             black.opponent = this;
         }
     }

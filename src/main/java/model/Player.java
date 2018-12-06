@@ -17,21 +17,20 @@ public class Player {
 
     public Player() {}
 
-    public String toJson() {
+    public JSONObject toJSON() {
         JSONObject player = new JSONObject();
         player.put(TRANSPORT_PLAYER_LOGIN, login);
-        player.put(TRANSPORT_PLAYER_PASSWORD, login);
+        player.put(TRANSPORT_PLAYER_PASSWORD, password);
         player.put(TRANSPORT_PLAYER_RATING, rating);
         player.put(TRANSPORT_PLAYER_WINS, wins);
         player.put(TRANSPORT_PLAYER_DRAWS, draws);
         player.put(TRANSPORT_PLAYER_LOSES, loses);
-        return player.toJSONString();
+        return player;
     }
-    public static Player fromJson(JSONObject player) {
+    public static Player fromJSON(JSONObject player) {
         System.out.println(player.toJSONString());
         String login = (String) player.get(TRANSPORT_PLAYER_LOGIN);
         String password = (String) player.get(TRANSPORT_PLAYER_PASSWORD);
-        System.out.println(player.get(TRANSPORT_PLAYER_WINS));
         double rating = (double) player.get(TRANSPORT_PLAYER_RATING);
         int wins = ((Long) player.get(TRANSPORT_PLAYER_WINS)).intValue();
         int draws = ((Long) player.get(TRANSPORT_PLAYER_DRAWS)).intValue();

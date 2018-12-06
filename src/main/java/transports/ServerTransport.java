@@ -1,8 +1,8 @@
 package transports;
 
+import controller.ChessmateServer;
 import db.Database;
 import model.*;
-import controller.ChessmateServer;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,53 +14,60 @@ import java.nio.channels.SocketChannel;
 import static transports.TransportConstants.*;
 
 public class ServerTransport extends AbstractTransport {
-    final ChessmateServer server;
+    final private ChessmateServer server;
     private Color color;
-    private AbstractTransport opponent;
-    private boolean finished = false;
+    private ServerTransport opponent;
+    private boolean isStillJoiningGame = false;
+    private Player player;
 
     public ServerTransport(SocketChannel client, ChessmateServer server) throws IOException {
         super(client);
         this.server = server;
     }
 
-    public boolean receiveAction() throws IOException, ParseException, IllegalMoveException {
+    public void receiveAction() throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
         ByteBuffer buffer = ByteBuffer.allocate(256);
-        int amount = client.read(buffer);
+        int amount = connection.read(buffer);
         if (amount == -1) {
-            finished = true;
-            return false;
+            server.disconnect(this);
+            isStillJoiningGame = false;
+            return;
         }
         parseAction(new String(buffer.array(), 0, amount));
-        return true;
     }
 
 
-    private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException {
+    private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException, IllegalPositionException {
         System.out.println("ServerTransport.parseAction");
         System.out.println(actionJSON);
-        JSONObject msg = (JSONObject) new JSONParser().parse(actionJSON);
-        String action = (String) msg.get(TransportConstants.TRANSPORT_ACTION);
+        JSONObject msgJSON = (JSONObject) new JSONParser().parse(actionJSON);
+        String action = (String) msgJSON.get(TransportConstants.TRANSPORT_ACTION);
         if (action == null) {
-            return;
+            throw new RuntimeException("Bad action exception: " + action);
         }
         switch (action) {
             case TRANSPORT_ACTION_REGISTER:
                 register(
-                        (String) msg.get(TransportConstants.TRANSPORT_LOGIN),
-                        (String) msg.get(TransportConstants.TRANSPORT_PASSWORD));
+                        (String) msgJSON.get(TransportConstants.TRANSPORT_LOGIN),
+                        (String) msgJSON.get(TransportConstants.TRANSPORT_PASSWORD)
+                );
                 break;
             case TRANSPORT_ACTION_LOGIN:
                 login(
-                        (String) msg.get(TransportConstants.TRANSPORT_LOGIN),
-                        (String) msg.get(TransportConstants.TRANSPORT_PASSWORD));
+                        (String) msgJSON.get(TransportConstants.TRANSPORT_LOGIN),
+                        (String) msgJSON.get(TransportConstants.TRANSPORT_PASSWORD)
+                );
+                break;
+            case TRANSPORT_ACTION_LOGOUT:
+                logout();
+                break;
             case TRANSPORT_ACTION_JOIN_GAME:
                 joinGame();
                 break;
             case TRANSPORT_ACTION_MOVE:
                 receiveMove(
-                        AbstractPosition.fromString(((String) msg.get(TRANSPORT_ACTION_MOVE_FROM))),
-                        AbstractPosition.fromString((String) msg.get(TRANSPORT_ACTION_MOVE_TO))
+                        AbstractPosition.fromString(((String) msgJSON.get(TRANSPORT_ACTION_MOVE_FROM))),
+                        AbstractPosition.fromString((String) msgJSON.get(TRANSPORT_ACTION_MOVE_TO))
                 );
                 break;
             default:
@@ -68,50 +75,78 @@ public class ServerTransport extends AbstractTransport {
         }
     }
 
-    void register(String login, String password) throws IOException {
-        Player player = Database.registerPlayer(login, password);
-        sendMessage(player.toJson());
-    }
-    void login(String login, String password) throws IOException {
-        Player player = Database.getPlayer(login, password);
-        sendMessage(player.toJson());
-    }
-    private void joinGame() throws IOException {
-        while (!server.joinGameQueue.isEmpty() && server.joinGameQueue.peek().finished) {
-            server.joinGameQueue.poll();
-        }
-        if (server.joinGameQueue.isEmpty()) {
-            server.joinGameQueue.add(this);
+    private void logout() {
+        if (color != null) {
+            finishGame();
         } else {
-            ServerTransport black = server.joinGameQueue.poll();
-            server.createGame(this, black);
-
-            sendMessage(COLOR_WHITE.toJSONString());
-            this.color = Color.WHITE;
-            opponent = black;
-
-            black.sendMessage(COLOR_BLACK.toJSONString());
-            black.color = Color.BLACK;
-            black.opponent = this;
+            isStillJoiningGame = false;
         }
+        server.logout(this);
+    }
+
+    void register(String login, String password) throws IOException {
+        System.out.println("ServerTransport.register");
+        player = Database.registerPlayer(login, password);
+        sendMessageJSON(player.toJSON());
+    }
+
+    void login(String login, String password) throws IOException {
+        System.out.println("ServerTransport.login");
+        player = Database.getPlayer(login, password);
+        sendMessageJSON(player.toJSON());
+    }
+
+    private void joinGame() throws IOException {
+        System.out.println("ServerTransport.joinGame");
+        isStillJoiningGame = true;
+        server.joinGameRequest(this);
+    }
+
+    public void startGame(Color color, ServerTransport opponent) throws IOException {
+        System.out.println("ServerTransport.startGame");
+        this.color = color;
+        this.opponent = opponent;
+        sendMessageJSON(color == Color.WHITE ? JSON_COLOR_WHITE : JSON_COLOR_BLACK);
+    }
+    public void finishGame() {
+        this.color = null;
+        this.opponent = null;
+        // TODO:
+    }
+
+    public boolean getIsStillJoiningGame() {
+        return isStillJoiningGame;
     }
 
     @Override
-    public void receiveMove(Position from, Position to) throws IllegalMoveException, IOException, ParseException {
+    public void receiveMove(Position from, Position to) throws IllegalPositionException, IllegalMoveException, IOException, ParseException {
+        System.out.println("ServerTransport.receiveMove");
         Table table = server.getGameTable(this);
         table.makeMove(color, from, to);
         switch (table.getCurrentState()) {
             case CHECKMATE:
-                sendMessage(RESPONSE_CHECKMATE.toJSONString());
-                opponent.sendMessage(RESPONSE_CHECKMATE.toJSONString());
+                player.addWin();
+                opponent.player.addLose();
+
+                sendMessageJSON(JSON_RESPONSE_CHECKMATE);
+                opponent.sendMessageJSON(JSON_RESPONSE_CHECKMATE);
+                finishGame();
                 break;
             case STALEMATE:
-                sendMessage(RESPONSE_STALEMATE.toJSONString());
-                opponent.sendMessage(RESPONSE_STALEMATE.toJSONString());
+                player.addDraw();
+                opponent.player.addDraw();
+
+                sendMessageJSON(JSON_RESPONSE_STALEMATE);
+                opponent.sendMessageJSON(JSON_RESPONSE_STALEMATE);
+                finishGame();
                 break;
             default:
-                sendMessage(RESPONSE_OK.toJSONString());
+                sendMessageJSON(JSON_RESPONSE_OK);
                 opponent.sendMove(from, to);
         }
+    }
+
+    public SocketChannel getSocket() {
+        return connection;
     }
 }

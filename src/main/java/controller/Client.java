@@ -22,6 +22,8 @@ import web.WebConfig;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Controller
 public class Client {
@@ -31,7 +33,8 @@ public class Client {
     private Table table = null;
     private GameResult result = null;
     final private ClientTransport client;
-    private Color playerColor = null;
+    private volatile Color playerColor = null;
+    ExecutorService executors = Executors.newFixedThreadPool(1);
 
     public Client() {
         client = staticClientTransport;
@@ -150,10 +153,18 @@ public class Client {
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
     public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException, IllegalMoveException {
-        playerColor = client.joinGame();
         table = new TableImpl();
         result = null;
         client.setTable(table);
+        executors.submit(() -> {
+            try {
+                playerColor = client.joinGame();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        });
 
         prepareModelMap(map, player, table, new RawMove(), "");
         // TODO Here new game button was pressed and need to send request to server
@@ -162,12 +173,23 @@ public class Client {
 
     @RequestMapping(value = "/rival_wait", method = RequestMethod.POST)
     public String rivalWait(@ModelAttribute("player") Player p, ModelMap map) {
-        if (true) {
+        if (playerColor != null) {
             // TODO: check if other player found and get playerColor
             prepareModelMap(map, player, table, playerColor, new RawMove(), "");
             if (playerColor == Color.WHITE){
                 return "game";
             } else {
+                executors.submit(() -> {
+                    try {
+                        client.waitForMove();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    } catch (IllegalMoveException e) {
+                        e.printStackTrace();
+                    }
+                });
                 return "move_wait";
             }
         } else {
@@ -182,7 +204,17 @@ public class Client {
             Position from = parsePosition(move.getFrom());
             Position to = parsePosition(move.getTo());
             table.makeMove(playerColor, from, to);
-            client.sendMove(from, to);
+            executors.submit(() -> {
+                try {
+                    client.sendMove(from, to);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                } catch (IllegalMoveException e) {
+                    e.printStackTrace();
+                }
+            });
         } catch (IllegalMoveException e) {
             prepareModelMap(map, player, table, playerColor, new RawMove(), e.getMessage());
             return "game";
@@ -206,17 +238,14 @@ public class Client {
                 Database.updatePlayer(player);
                 prepareModelMap(map, player, table, result, playerColor);
                 return "after_game";
-            default:
+               default:
                 return "";
         }
     }
 
     @RequestMapping(value = "/move_wait", method = RequestMethod.POST)
     public String moveWait(ModelMap map) {
-        if (true) {
-            // TODO check if other player made move and then update table
-            table = table; // TODO table = getTableFromServer();
-
+        if (table.getCurrentTurn() == playerColor) {
             switch (table.getCurrentState()) {
                 case NONE:
                     prepareModelMap(map, player, table, playerColor, new RawMove(), "");
@@ -240,6 +269,7 @@ public class Client {
                     return "";
             }
         } else {
+            prepareModelMap(map, player, table, playerColor, new RawMove(), "");
             return "move_wait";
         }
     }

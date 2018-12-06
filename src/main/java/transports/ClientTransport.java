@@ -1,9 +1,6 @@
 package transports;
 
-import model.AbstractPosition;
-import model.IllegalMoveException;
-import model.Position;
-import model.Table;
+import model.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
@@ -73,15 +70,15 @@ public class ClientTransport extends AbstractTransport {
         }
     }
 
-    public Table.Color joinGame() throws IOException, ParseException {
+    public Color joinGame() throws IOException, ParseException {
         JSONObject object = new JSONObject();
         object.put(TRANSPORT_ACTION, TRANSPORT_ACTION_JOIN_GAME);
 
         JSONObject response = sendMessageAndWaitForResponse(object.toJSONString());
         if (COLOR_WHITE.equals(response)) {
-            return Table.Color.WHITE;
+            return Color.WHITE;
         } else if (COLOR_BLACK.equals(response)) {
-            return Table.Color.BLACK;
+            return Color.BLACK;
         } else {
             throw new RuntimeException("[false]");
         }

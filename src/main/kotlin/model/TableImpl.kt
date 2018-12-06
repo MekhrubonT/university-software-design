@@ -3,6 +3,7 @@ package model
 class TableImpl : Table {
     var state = GameState.NONE
 
+    @Volatile
     var turn = Color.WHITE
 
     val kingsPositions = mutableMapOf<Color, Position>()
@@ -143,8 +144,8 @@ class TableImpl : Table {
             }
             figure.afterMove()
         }
-        turn = turn.other()
         updateState()
+        turn = turn.other()
     }
 
     private fun revertMove(from: Position, to: Position, otherFigure: Figure?) {

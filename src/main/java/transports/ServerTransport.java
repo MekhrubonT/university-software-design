@@ -25,7 +25,7 @@ public class ServerTransport extends AbstractTransport {
         this.server = server;
     }
 
-    public void receiveAction() throws IOException, ParseException, IllegalMoveException {
+    public void receiveAction() throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
         ByteBuffer buffer = ByteBuffer.allocate(256);
         int amount = connection.read(buffer);
         if (amount == -1) {
@@ -37,7 +37,7 @@ public class ServerTransport extends AbstractTransport {
     }
 
 
-    private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException {
+    private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException, IllegalPositionException {
         System.out.println("ServerTransport.parseAction");
         System.out.println(actionJSON);
         JSONObject msgJSON = (JSONObject) new JSONParser().parse(actionJSON);
@@ -119,7 +119,7 @@ public class ServerTransport extends AbstractTransport {
     }
 
     @Override
-    public void receiveMove(Position from, Position to) throws IllegalMoveException, IOException, ParseException {
+    public void receiveMove(Position from, Position to) throws IllegalPositionException, IllegalMoveException, IOException, ParseException {
         System.out.println("ServerTransport.receiveMove");
         Table table = server.getGameTable(this);
         table.makeMove(color, from, to);

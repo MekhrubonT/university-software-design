@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static model.AbstractPosition.fromString;
+
 @Controller
 public class ChessmateClient {
     static public ClientTransport staticClientTransport;
@@ -88,7 +90,7 @@ public class ChessmateClient {
     }
 
     @RequestMapping(value = "/goto_main", method = RequestMethod.POST)
-    public String gotoMain(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
+    public String gotoMain(@ModelAttribute("player") Player p, ModelMap map) {
         table = null;
         result = null;
         playerColor = null;
@@ -166,7 +168,7 @@ public class ChessmateClient {
     }
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
-    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException, IllegalMoveException {
+    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
         table = new TableImpl();
         result = null;
         client.setTable(table);
@@ -195,11 +197,7 @@ public class ChessmateClient {
                 executors.submit(() -> {
                     try {
                         client.waitForMove();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    } catch (IllegalMoveException e) {
+                    } catch (IOException | IllegalPositionException | IllegalMoveException | ParseException e) {
                         e.printStackTrace();
                     }
                 });
@@ -212,23 +210,20 @@ public class ChessmateClient {
     }
 
     @RequestMapping(value = "/make_move", method = RequestMethod.POST)
-    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) throws IOException, ParseException {
+    public String makeMove(@ModelAttribute("move") RawMove move, ModelMap map) {
+        System.out.println("ChessmateClient.makeMove");
         try {
-            Position from = parsePosition(move.getFrom());
-            Position to = parsePosition(move.getTo());
+            Position from = fromString(move.getFrom());
+            Position to = fromString(move.getTo());
             table.makeMove(playerColor, from, to);
             executors.submit(() -> {
                 try {
                     client.sendMove(from, to);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                } catch (IllegalMoveException e) {
+                } catch (IOException | ParseException | IllegalMoveException | IllegalPositionException e) {
                     e.printStackTrace();
                 }
             });
-        } catch (IllegalMoveException e) {
+        } catch (IllegalMoveException | IllegalPositionException e) {
             prepareModelMap(map, player, table, playerColor, new RawMove(), e.getMessage());
             return "game";
         }
@@ -258,6 +253,7 @@ public class ChessmateClient {
 
     @RequestMapping(value = "/move_wait", method = RequestMethod.POST)
     public String moveWait(ModelMap map) {
+        System.out.println("ChessmateClient.moveWait");
         if (table.getCurrentTurn() == playerColor) {
             switch (table.getCurrentState()) {
                 case NONE:
@@ -292,26 +288,6 @@ public class ChessmateClient {
         List<Player> top = Database.getTop();
         prepareModelMap(map, top);
         return "stats";
-    }
-
-    private Position parsePosition(String pos) throws IllegalMoveException {
-        int row;
-        int column;
-        try {
-            char col = pos.charAt(0);
-            row = Integer.parseInt(pos.substring(1, 2)) - 1;
-            if (col > 'h' || col < 'a' || row > 7 || row < 0) {
-                throw new IllegalMoveException("Illegal string for move position: " + pos);
-            }
-            column = col - 'a';
-        } catch (Exception e) {
-            throw new IllegalMoveException("Illegal string for move position: " + pos);
-        }
-        return new PositionImpl(row, column);
-    }
-
-    void updatePlayerData(Player newData) {
-        player.updateData(newData);
     }
 
     private void prepareModelMap(ModelMap map, Player player) {

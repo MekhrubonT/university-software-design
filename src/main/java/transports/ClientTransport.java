@@ -40,7 +40,8 @@ public class ClientTransport extends AbstractTransport {
 
 
     @Override
-    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
+    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
+        System.out.println("ClientTransport.sendMove");
         super.sendMove(from, to);
         JSONObject response = waitForMessageJSON();
         if (JSON_RESPONSE_CHECKMATE.equals(response)) { // ignored
@@ -52,7 +53,8 @@ public class ClientTransport extends AbstractTransport {
         }
     }
 
-    public void waitForMove() throws IOException, ParseException, IllegalMoveException {
+    public void waitForMove() throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
+        System.out.println("ClientTransport.waitForMove");
         JSONObject move = waitForMessageJSON();
         if (TRANSPORT_ACTION_MOVE.equals(move.get(TRANSPORT_ACTION))) {
             receiveMove(

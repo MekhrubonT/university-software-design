@@ -1,9 +1,6 @@
 package controller;// Artem: model.Table is kept bot on server and clients. Send only moves.
 
-import model.Color;
-import model.IllegalMoveException;
-import model.Table;
-import model.TableImpl;
+import model.*;
 import org.json.simple.parser.ParseException;
 import transports.ServerTransport;
 import transports.Transport;
@@ -40,14 +37,14 @@ public class ChessmateServer implements AutoCloseable {
     }
 
     private void receiveClientAction(SelectionKey key)
-            throws IOException, ParseException, IllegalMoveException {
+            throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
         SocketChannel client = (SocketChannel) key.channel();
         ServerTransport serverTransport = clientsTransport.get(client);
         serverTransport.receiveAction();
     }
 
 
-    public void run() throws IOException, ParseException, IllegalMoveException {
+    public void run() throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
         while (true) {
             selector.select();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();

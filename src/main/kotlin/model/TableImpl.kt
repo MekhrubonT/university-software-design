@@ -216,3 +216,4 @@ const val N_ROWS = 8
 const val N_COLS = 8
 
 class IllegalMoveException(message: String) : Exception(message)
+class IllegalPositionException(message: String) : Exception(message)

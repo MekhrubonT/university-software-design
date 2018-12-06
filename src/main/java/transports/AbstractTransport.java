@@ -1,6 +1,7 @@
 package transports;
 
 import model.IllegalMoveException;
+import model.IllegalPositionException;
 import model.Position;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -43,7 +44,7 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
         connection.close();
     }
 
-    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException {
+    public void sendMove(Position from, Position to) throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
         JSONObject move = new JSONObject();
         move.put(TRANSPORT_ACTION, TRANSPORT_ACTION_MOVE);
         move.put(TRANSPORT_ACTION_MOVE_FROM, from.toString());

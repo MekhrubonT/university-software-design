@@ -54,27 +54,16 @@
     </table>
 </form:form>
 
+
 <table align="center">
-    <tr>
-        <form:form modelAttribute="move" method="POST" action="/make_move">
-        <td>From</td>
-        <td style="width: 100px"><form:input style="width: 100px" path="from"/></td>
-        <td>To</td>
-        <td style="width: 100px"><form:input style="width: 100px" path="to"/></td>
-        <td>
-            <input type="submit" value="Make move">
-        </td>
-        </form:form>
-    </tr>
-</table>
-<table align="center">
-    <form:form modelAttribute="exception">
     <tr >
         <td style="text-align: center">
-            <label style="display: block; text-align: center<c:if test="${exception == \"\"}">; visibility: hidden</c:if>" >${exception}</label>
+            <form:form modelAttribute="player" method="POST" action="/move_wait">
+                <input type="submit" value="Обновить">
+            </form:form>
         </td>
     </tr>
-    </form:form>
+
     <tr>
         <td style="text-align: center">
             <form:form modelAttribute="player" method="POST" action="/logout">

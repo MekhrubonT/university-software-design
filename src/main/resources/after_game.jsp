@@ -10,7 +10,9 @@
 </head>
 <body>
 
-<h1 align="center">Шахматная доска</h1>
+<form:form modelAttribute="color">
+    <h2 align="center">You are ${color}</h2>
+</form:form>
 
 <form:form modelAttribute="table">
     <table align="center" style="border-spacing: 0px">
@@ -56,7 +58,7 @@
     <form:form modelAttribute="result">
         <tr >
             <td style="text-align: center">
-                <label style="display: block; text-align: center" >${result}</label>
+                <h3>${result}</h3>
             </td>
         </tr>
     </form:form>
@@ -65,6 +67,10 @@
             <form:form modelAttribute="player" method="POST" action="/goto_main">
                 <input type="submit" value="На главную">
             </form:form>
+        </td>
+    </tr>
+    <tr>
+        <td>
             <form:form modelAttribute="player" method="POST" action="/logout">
                 <input type="submit" value="Выйти">
             </form:form>

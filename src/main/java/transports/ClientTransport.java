@@ -48,9 +48,7 @@ public class ClientTransport extends AbstractTransport {
         super.sendMove(from, to);
         JSONObject response = waitForMessage();
         if (RESPONSE_CHECKMATE.equals(response)) {
-            // TODO: Finish with checkmate
         } else if (RESPONSE_STALEMATE.equals(response)) {
-            // TODO: Finish with stalemate
         } else if (RESPONSE_OK.equals(response)){
             waitForMove();
         } else {

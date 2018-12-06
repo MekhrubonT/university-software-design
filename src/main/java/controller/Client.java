@@ -34,24 +34,18 @@ public class Client {
     private GameResult result = null;
     final private ClientTransport client;
     private volatile Color playerColor = null;
-    ExecutorService executors = Executors.newFixedThreadPool(1);
+    private ExecutorService executors = Executors.newFixedThreadPool(1);
 
     public Client() {
         client = staticClientTransport;
     }
 
-    public static void init() throws Exception {
-        try {
-            Server server = new Server(8088);
-            server.setHandler(getServletContextHandler(Client.getContext()));
-            server.start();
-            server.join();
-        } catch (Exception e) {
-            Server server = new Server(8089);
-            server.setHandler(getServletContextHandler(Client.getContext()));
-            server.start();
-            server.join();
-        }
+    public static void init(ClientTransport clientTransport, int uiPort) throws Exception {
+        staticClientTransport = clientTransport;
+        Server server = new Server(uiPort);
+        server.setHandler(getServletContextHandler(Client.getContext()));
+        server.start();
+        server.join();
     }
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
@@ -167,7 +161,6 @@ public class Client {
         });
 
         prepareModelMap(map, player, table, new RawMove(), "");
-        // TODO Here new game button was pressed and need to send request to server
         return "rival_wait";
     }
 

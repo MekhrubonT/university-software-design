@@ -6,6 +6,10 @@ class Move(val figureShifts: MutableMap<out Figure, Pair<Int, Int>>) {
     }
 
     fun isComposite(): Boolean = figureShifts.size > 1
+
+    override fun toString(): String {
+        return "Move(figureShifts=$figureShifts)"
+    }
 }
 
 fun singleFigureMove(figure: Figure, shift: Pair<Int, Int>): Move {

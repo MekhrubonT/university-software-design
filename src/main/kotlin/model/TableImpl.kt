@@ -71,6 +71,8 @@ class TableImpl : Table {
         board[position.row][position.col] = figure
         figures.add(figure)
         figuresByColor[figure.color]?.add(figure)
+        if (figure::class == King::class)
+            kingsPositions[figure.color] = figure.position
     }
 
     override fun getAllFigures(): MutableList<Figure> = figures.toMutableList()
@@ -91,10 +93,6 @@ class TableImpl : Table {
                     getFigure(from)?.isMine(playerColor) ?: false &&
                     !(getFigure(to)?.isMine(playerColor) ?: false)
 
-    private fun Color.other() = when (this) {
-        Color.BLACK -> Color.WHITE
-        else -> Color.BLACK
-    }
 
     private fun setFigure(figure: Figure, position: Position) {
         val oldPosition = figure.position
@@ -166,12 +164,12 @@ class TableImpl : Table {
             to?.let { newPosition ->
                 getFigure(newPosition)?.color != color &&
                         tryMove(this, position, newPosition, true)
-            } != false
+            } == true
         }
 
     }
 
-    private fun currentHasMoves() =
+    fun currentHasMoves() =
             figuresByColor[turn]?.asSequence()?.any { it.hasMoves() } != false
 
 
@@ -201,6 +199,11 @@ infix fun Position.plus(move: Pair<Int, Int>): Position? {
     if (newRow in 0..(N_ROWS - 1) && newCol in 0..(N_COLS - 1))
         return PositionImpl(newRow, newCol)
     return null
+}
+
+fun Color.other() = when (this) {
+    Color.BLACK -> Color.WHITE
+    else -> Color.BLACK
 }
 
 infix fun Figure.applyMove(move: Move): Position? =

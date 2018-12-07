@@ -38,6 +38,30 @@ class TableImplTest {
                         PositionImpl(0, 7),
                         false,
                         Pawn(PositionImpl(0, 1), Color.WHITE)
+                ),
+                arrayOf(
+                        Pawn(PositionImpl(1, 0), Color.WHITE),
+                        PositionImpl(2, 1),
+                        false,
+                        null
+                ),
+                arrayOf(
+                        Pawn(PositionImpl(1, 0), Color.WHITE),
+                        PositionImpl(2, 0),
+                        true,
+                        null
+                ),
+                arrayOf(
+                        Pawn(PositionImpl(1, 0), Color.WHITE),
+                        PositionImpl(3, 0),
+                        true,
+                        null
+                ),
+                arrayOf(
+                        Pawn(PositionImpl(1, 0), Color.WHITE),
+                        PositionImpl(3, 0),
+                        false,
+                        Pawn(PositionImpl(2, 0), Color.WHITE)
                 )
         )
 
@@ -88,7 +112,7 @@ class TableImplTest {
 
 
     @Test
-    fun eatOtherFigure() {
+    fun eatRivalFigure() {
         val from = PositionImpl(2, 2)
         val whitePawn = Pawn(from, Color.WHITE)
         table.setFigure(whitePawn)
@@ -158,6 +182,17 @@ class TableImplTest {
             table.makeMove(Color.BLACK, PositionImpl(6, 5), PositionImpl(5, 5))
         }
     }
+
+    @Test
+    internal fun testFoolsMate() {
+        table.fill()
+        table.makeMove(Color.WHITE, PositionImpl(1, 5), PositionImpl(2, 5))
+        table.makeMove(Color.BLACK, PositionImpl(6, 4), PositionImpl(4, 4))
+        table.makeMove(Color.WHITE, PositionImpl(1, 6), PositionImpl(3, 6))
+        table.makeMove(Color.BLACK, PositionImpl(7, 3), PositionImpl(3, 7))
+        assertEquals(GameState.CHECKMATE, table.state)
+    }
+
 
     private fun printBoard() {
         table.figuresByColor.forEach {

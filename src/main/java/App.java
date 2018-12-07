@@ -17,7 +17,7 @@ public class App {
                     new App().runServer(options.port);
                     break;
                 case CLIENT:
-                    new App().runClient(options.serverPort, options.port);
+                    new App().runClient(options.serverHost, options.serverPort, options.port);
                     break;
             }
         } catch (OptionsParseException e) {
@@ -38,8 +38,8 @@ public class App {
         }
     }
 
-    private void runClient(int serverPort, int uiPort) throws Exception {
-        try (ClientTransport clientTransport = new ClientTransport(serverPort)) {
+    private void runClient(String serverHost, int serverPort, int uiPort) throws Exception {
+        try (ClientTransport clientTransport = new ClientTransport(serverHost, serverPort)) {
             ChessmateClient.init(clientTransport, uiPort);
         }
     }

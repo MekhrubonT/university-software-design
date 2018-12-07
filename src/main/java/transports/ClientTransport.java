@@ -13,8 +13,8 @@ import static transports.TransportConstants.*;
 public class ClientTransport extends AbstractTransport {
     private Table table;
 
-    public ClientTransport(int port) throws IOException {
-        super(SocketChannel.open(new InetSocketAddress("localhost", port)));
+    public ClientTransport(String host, int port) throws IOException {
+        super(SocketChannel.open(new InetSocketAddress(host, port)));
     }
 
     public void setTable(Table table) {

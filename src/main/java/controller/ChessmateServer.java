@@ -1,4 +1,4 @@
-package controller;// Artem: model.Table is kept bot on server and clients. Send only moves.
+package controller;
 
 import model.*;
 import org.json.simple.parser.ParseException;

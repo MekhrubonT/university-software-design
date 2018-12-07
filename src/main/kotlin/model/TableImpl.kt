@@ -1,6 +1,7 @@
 package model
 
 class TableImpl : Table {
+    @Volatile
     var state = GameState.NONE
 
     @Volatile
@@ -142,8 +143,8 @@ class TableImpl : Table {
             }
             figure.afterMove()
         }
-        updateState()
         turn = turn.other()
+        updateState()
     }
 
     private fun revertMove(from: Position, to: Position, otherFigure: Figure?) {

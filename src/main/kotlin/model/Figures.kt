@@ -129,6 +129,8 @@ class King(mPosition: Position, mColor: Color) :
 
 class Pawn(mPosition: Position, mColor: Color) :
         FigureImpl(mPosition, mColor, listOf(Pair(1, 0)), true, UPPER_DIAGONAL) {
+    private val forward = Pair(if (color == Color.BLACK) -1 else 1, 0)
+
     init {
         if (mColor == Color.BLACK) {
             mMoveDirections = mMoveDirections.map { it times (-1) }
@@ -143,10 +145,19 @@ class Pawn(mPosition: Position, mColor: Color) :
     override fun getShortMoves(table: Table): Sequence<Move> {
         return mMoveDirections.asSequence()
                 .map { singleFigureMove(this, it) }
-                .plus(mBeatDirections.map { singleFigureMove(this, it) })
-                .plus(sequenceOf(
-                        singleFigureMove(this, Pair(if (color == Color.BLACK) -2 else 2, 0))).filter { !moved })
+                .plus(filteredBeatDirections(table).map { singleFigureMove(this, it) })
+                .plus(longMove(table))
     }
+
+    private fun longMove(table: Table) = sequenceOf(
+            singleFigureMove(this, forward times 2))
+            .filter { !moved && (position plus forward)?.let { table.getFigure(it) == null } == true }
+            .filter { (position plus (forward times 2))?.let { table.getFigure(it) == null } == true }
+
+    private fun filteredBeatDirections(table: Table) =
+            mBeatDirections.asSequence().filter {
+                (position plus it)?.let { pos -> table.getFigure(pos)?.color == color.other() } ?: false
+            }
 }
 
 class Rook(mPosition: Position, mColor: Color) :

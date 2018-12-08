@@ -136,12 +136,14 @@ public class ServerTransport extends AbstractTransport {
         switch (table.getCurrentState()) {
             case CHECKMATE:
                 win(true);
-                opponent.lose(true);
+                opponent.lose(false);
+                opponent.sendMove(from, to);
                 finishGame();
                 break;
             case STALEMATE:
                 draw(true);
-                opponent.draw(true);
+                opponent.draw(false);
+                opponent.sendMove(from, to);
                 finishGame();
                 break;
             default:
@@ -149,7 +151,6 @@ public class ServerTransport extends AbstractTransport {
         }
     }
     public void win(boolean sendMessage) throws IOException {
-        finishGame();
         player.addWin();
         Database.updatePlayer(player);
         if (sendMessage) {
@@ -158,7 +159,6 @@ public class ServerTransport extends AbstractTransport {
     }
 
     public void lose(boolean sendMessage) throws IOException {
-        finishGame();
         player.addLose();
         Database.updatePlayer(player);
         if (sendMessage) {
@@ -167,7 +167,6 @@ public class ServerTransport extends AbstractTransport {
     }
 
     private void draw(boolean sendMessage) throws IOException {
-        finishGame();
         player.addDraw();
         Database.updatePlayer(player);
         if (sendMessage) {

@@ -45,7 +45,7 @@ public class ServerClientTransportTest {
     }
 
     private ClientTransport doRunClient(int serverPort) throws IOException {
-        return new ClientTransport(serverPort);
+        return new ClientTransport("localhost", serverPort);
     }
 
     @Test

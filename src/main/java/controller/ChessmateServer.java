@@ -45,7 +45,7 @@ public class ChessmateServer implements AutoCloseable {
 
 
     public void run() throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             selector.select();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
@@ -81,14 +81,18 @@ public class ChessmateServer implements AutoCloseable {
     }
 
     public void disconnect(ServerTransport client) {
-        currentGames.remove(client);
         clientsTransport.remove(client.getSocket());
         client.getSocket().keyFor(selector).cancel();
-        // TODO: opponent wins a game
     }
-
-    public void logout(ServerTransport client) {
-        // TODO
+    public void logout(ServerTransport client) throws IOException {
+        Table table = currentGames.get(client);
+        if (table != null) {
+            ServerTransport opponent = client.getOpponent();
+            client.lose(false);
+            opponent.win(true);
+            currentGames.remove(client);
+            currentGames.remove(opponent);
+        }
     }
 
     @Override

@@ -15,6 +15,7 @@ import static transports.TransportConstants.*;
 
 public abstract class AbstractTransport implements Transport, AutoCloseable {
     final protected SocketChannel connection;
+    String buffer = "";
 
     public AbstractTransport(SocketChannel client) throws IOException {
         this.connection = client;
@@ -36,7 +37,17 @@ public abstract class AbstractTransport implements Transport, AutoCloseable {
     public JSONObject waitForMessageJSON() throws IOException, ParseException {
         ByteBuffer wrap = ByteBuffer.allocate(256);
         int amount = connection.read(wrap);
-        return (JSONObject) new JSONParser().parse(new String(wrap.array(), 0, amount));
+        if (amount > 0) {
+            buffer += new String(wrap.array(), 0, amount);
+        }
+        int pos = buffer.indexOf('}');
+        if (pos == -1) {
+            return null;
+        }
+        String msg = buffer.substring(0, pos + 1);
+        buffer = buffer.substring(pos + 1);
+        System.out.println("AbstractTransport.waitForMessageJSON " + msg);
+        return (JSONObject) new JSONParser().parse(msg);
     }
 
     @Override

@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static model.AbstractPosition.fromString;
+import static transports.ClientTransport.*;
 
 @Controller
 public class ChessmateClient {
@@ -168,45 +169,32 @@ public class ChessmateClient {
     }
 
     @RequestMapping(value = "/new-game", method = RequestMethod.POST)
-    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) {
+    public String createNewGame(@ModelAttribute("player") Player p, ModelMap map) throws IOException {
         table = new TableImpl();
         result = null;
+        playerColor = null;
         client.setTable(table);
-        executors.submit(() -> {
-            try {
-                playerColor = client.joinGame();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        });
-
+        client.joinGame();
         prepareModelMap(map, player, table, new RawMove(), "");
         return "rival_wait";
     }
 
     @RequestMapping(value = "/rival_wait", method = RequestMethod.POST)
-    public String rivalWait(@ModelAttribute("player") Player p, ModelMap map) {
+    public String rivalWait(@ModelAttribute("player") Player p, ModelMap map) throws IOException, ParseException {
+        playerColor = client.receiveColor();
+
         if (playerColor != null) {
             // TODO: check if other player found and get playerColor
             prepareModelMap(map, player, table, playerColor, new RawMove(), "");
             if (playerColor == Color.WHITE) {
                 return "game";
             } else {
-                executors.submit(() -> {
-                    try {
-                        client.waitForMove();
-                    } catch (IOException | IllegalPositionException | IllegalMoveException | ParseException e) {
-                        e.printStackTrace();
-                    }
-                });
                 return "move_wait";
             }
-        } else {
-            prepareModelMap(map, player, table, new RawMove(), "");
-            return "rival_wait";
         }
+
+        prepareModelMap(map, player, table, new RawMove(), "");
+        return "rival_wait";
     }
 
     @RequestMapping(value = "/make_move", method = RequestMethod.POST)
@@ -216,71 +204,44 @@ public class ChessmateClient {
             Position from = fromString(move.getFrom());
             Position to = fromString(move.getTo());
             table.makeMove(playerColor, from, to);
-            executors.submit(() -> {
-                try {
-                    client.sendMove(from, to);
-                } catch (IOException | ParseException | IllegalMoveException | IllegalPositionException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (IllegalMoveException | IllegalPositionException e) {
+            client.sendMove(from, to);
+        } catch (IllegalMoveException | IllegalPositionException | IOException | ParseException e) {
             prepareModelMap(map, player, table, playerColor, new RawMove(), e.getMessage());
             return "game";
         }
-        switch (table.getCurrentState()) {
-            case NONE:
-                prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-                return "move_wait";
-            case CHECK:
-                prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-                return "move_wait";
-            case CHECKMATE:
-                result = GameResult.WIN;
-                player.addWin();
-                Database.updatePlayer(player);
-                prepareModelMap(map, player, table, result, playerColor);
-                return "after_game";
-            case STALEMATE:
-                result = GameResult.DRAW;
-                player.addDraw();
-                Database.updatePlayer(player);
-                prepareModelMap(map, player, table, result, playerColor);
-                return "after_game";
-            default:
-                return "";
-        }
+        prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+        return "move_wait";
     }
 
     @RequestMapping(value = "/move_wait", method = RequestMethod.POST)
-    public String moveWait(ModelMap map) {
+    public String moveWait(ModelMap map) throws IllegalMoveException, IllegalPositionException, ParseException, IOException {
         System.out.println("ChessmateClient.moveWait");
-        if (table.getCurrentTurn() == playerColor) {
-            switch (table.getCurrentState()) {
-                case NONE:
-                    prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-                    return "game";
-                case CHECK:
-                    prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-                    return "game";
-                case CHECKMATE:
-                    result = GameResult.LOSE;
-                    player.addLose();
-                    Database.updatePlayer(player);
-                    prepareModelMap(map, player, table, result, playerColor);
-                    return "after_game";
-                case STALEMATE:
-                    result = GameResult.DRAW;
-                    player.addDraw();
-                    Database.updatePlayer(player);
-                    prepareModelMap(map, player, table, result, playerColor);
-                    return "after_game";
-                default:
-                    return "";
-            }
-        } else {
-            prepareModelMap(map, player, table, playerColor, new RawMove(), "");
-            return "move_wait";
+
+        switch (client.checkMove()) {
+            case MOVE_NONE:
+                prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+                return "move_wait";
+            case MOVE_DONE:
+                prepareModelMap(map, player, table, playerColor, new RawMove(), "");
+                return "game";
+            case MOVE_CHEKMATE_WIN:
+                result = GameResult.WIN;
+                player.addWin();
+                break;
+            case MOVE_CHECKMATE_LOSE:
+                result = GameResult.LOSE;
+                player.addLose();
+                break;
+            case MOVE_STALEMATE:
+                result = GameResult.DRAW;
+                player.addDraw();
+                break;
+            default:
+                throw new RuntimeException("[false]");
         }
+
+        prepareModelMap(map, player, table, result, playerColor);
+        return "after_game";
     }
 
     @RequestMapping(value = "/stats", method = RequestMethod.POST)

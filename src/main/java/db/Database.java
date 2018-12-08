@@ -4,7 +4,6 @@ import model.GameResult;
 import model.Player;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +41,20 @@ public class Database {
         String sql = "UPDATE PLAYERS SET RATING=" + (p.getRating()) + ", WINS=" + (p.getWins()) + ", DRAWS=" + (p.getDraws())
                     + ", LOSES=" + (p.getLoses())+ " WHERE LOGIN='" + p.getLogin() + "'";
         DatabaseHelper.databaseUpdate(sql);
+    }
+
+    public static boolean removePlayer(Player p) {
+        String format = String.format("SELECT COUNT(*) FROM PLAYERS WHERE LOGIN='%s' AND PASSWORD='%s'", p.getLogin(), p.getPassword());
+        int count = DatabaseHelper.databaseQuery(
+                format,
+                rs -> rs.next() ? rs.getInt(1) : 0
+        );
+        if (count == 0) {
+            return false;
+        }
+        String sql = String.format("DELETE FROM PLAYERS WHERE LOGIN='%s' AND PASSWORD='%s'", p.getLogin(), p.getPassword());
+        DatabaseHelper.databaseUpdate(sql);
+        return true;
     }
 
     public static void updateAfterGame(Player p1, Player p2, GameResult res) {

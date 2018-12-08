@@ -25,17 +25,24 @@ public class ServerTransport extends AbstractTransport {
         this.server = server;
     }
 
+    public ServerTransport getOpponent() {
+        return opponent;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
     public void receiveAction() throws IOException, ParseException, IllegalMoveException, IllegalPositionException {
         ByteBuffer buffer = ByteBuffer.allocate(256);
         int amount = connection.read(buffer);
         if (amount == -1) {
-            server.disconnect(this);
-            isStillJoiningGame = false;
+            System.out.println("ServerTransport.receiveAction client connection closed");
+            disconnect();
             return;
         }
         parseAction(new String(buffer.array(), 0, amount));
     }
-
 
     private void parseAction(String actionJSON) throws ParseException, IOException, IllegalMoveException, IllegalPositionException {
         System.out.println("ServerTransport.parseAction");
@@ -75,13 +82,14 @@ public class ServerTransport extends AbstractTransport {
         }
     }
 
-    private void logout() {
-        if (color != null) {
-            finishGame();
-        } else {
-            isStillJoiningGame = false;
-        }
+    private void disconnect() throws IOException {
+        logout();
+        server.disconnect(this);
+    }
+
+    private void logout() throws IOException {
         server.logout(this);
+        isStillJoiningGame = false;
     }
 
     void register(String login, String password) throws IOException {
@@ -111,7 +119,6 @@ public class ServerTransport extends AbstractTransport {
     public void finishGame() {
         this.color = null;
         this.opponent = null;
-        // TODO:
     }
 
     public boolean getIsStillJoiningGame() {
@@ -122,27 +129,49 @@ public class ServerTransport extends AbstractTransport {
     public void receiveMove(Position from, Position to) throws IllegalPositionException, IllegalMoveException, IOException, ParseException {
         System.out.println("ServerTransport.receiveMove");
         Table table = server.getGameTable(this);
+        if (table == null) {
+            return;
+        }
         table.makeMove(color, from, to);
         switch (table.getCurrentState()) {
             case CHECKMATE:
-                player.addWin();
-                opponent.player.addLose();
-
-                sendMessageJSON(JSON_RESPONSE_CHECKMATE);
-                opponent.sendMessageJSON(JSON_RESPONSE_CHECKMATE);
+                win(true);
+                opponent.lose(true);
                 finishGame();
                 break;
             case STALEMATE:
-                player.addDraw();
-                opponent.player.addDraw();
-
-                sendMessageJSON(JSON_RESPONSE_STALEMATE);
-                opponent.sendMessageJSON(JSON_RESPONSE_STALEMATE);
+                draw(true);
+                opponent.draw(true);
                 finishGame();
                 break;
             default:
-                sendMessageJSON(JSON_RESPONSE_OK);
                 opponent.sendMove(from, to);
+        }
+    }
+    public void win(boolean sendMessage) throws IOException {
+        finishGame();
+        player.addWin();
+        Database.updatePlayer(player);
+        if (sendMessage) {
+            sendMessageJSON(JSON_RESPONSE_CHECKMATE);
+        }
+    }
+
+    public void lose(boolean sendMessage) throws IOException {
+        finishGame();
+        player.addLose();
+        Database.updatePlayer(player);
+        if (sendMessage) {
+            sendMessageJSON(JSON_RESPONSE_CHECKMATE);
+        }
+    }
+
+    private void draw(boolean sendMessage) throws IOException {
+        finishGame();
+        player.addDraw();
+        Database.updatePlayer(player);
+        if (sendMessage) {
+            sendMessageJSON(JSON_RESPONSE_STALEMATE);
         }
     }
 

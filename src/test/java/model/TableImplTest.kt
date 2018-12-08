@@ -177,7 +177,6 @@ class TableImplTest {
         table.makeMove(Color.WHITE, PositionImpl(1, 4), PositionImpl(2, 4))
         table.makeMove(Color.BLACK, PositionImpl(7, 1), PositionImpl(5, 2))
         table.makeMove(Color.WHITE, PositionImpl(0, 3), PositionImpl(4, 7))
-        printBoard()
         assertThrows<IllegalMoveException> {
             table.makeMove(Color.BLACK, PositionImpl(6, 5), PositionImpl(5, 5))
         }

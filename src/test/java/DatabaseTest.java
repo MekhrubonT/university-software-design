@@ -33,37 +33,37 @@ public class DatabaseTest {
 
     }
 
-    @org.junit.Test
+    @Test
     public void registerNonExistingPlayer() throws Exception {
         Player player = Database.registerPlayer("maxim", "longpassword");
         assertEquals(player, new Player("maxim", "longpassword"));
     }
 
-    @org.junit.Test
+    @Test
     public void registerExistingPlayer() throws Exception {
         Player player = Database.registerPlayer("artem", "longpassword");
         assertEquals(player, Player.EMPTY_PLAYER);
     }
 
-    @org.junit.Test
+    @Test
     public void getNonExistingPlayer() throws Exception {
         Player player = Database.getPlayer("maxim", "longpassword");
         assertEquals(player, Player.EMPTY_PLAYER);
     }
 
-    @org.junit.Test
+    @Test
     public void getExistingPlayer() throws Exception {
         Player player = Database.getPlayer("artem", "123456");
         assertEquals(player, new Player("artem", "123456"));
     }
 
-    @org.junit.Test
+    @Test
     public void getExistingPlayerWithWrongPassword() throws Exception {
         Player player = Database.getPlayer("artem", "longpassword");
         assertEquals(player, Player.EMPTY_PLAYER);
     }
 
-    @org.junit.Test
+    @Test
     public void updateAfterWin() throws Exception {
         Player p1 = new Player("artem", "123456");
         Player p2 = new Player("mekh", "000000");
@@ -76,7 +76,7 @@ public class DatabaseTest {
         assertEquals(p2, Database.getPlayer("mekh", "000000"));
     }
 
-    @org.junit.Test
+    @Test
     public void updateAfterDraw() throws Exception {
         Player p1 = new Player("artem", "123456");
         Player p2 = new Player("roman", "qwerty");
@@ -89,7 +89,7 @@ public class DatabaseTest {
         assertEquals(p2, Database.getPlayer("roman", "qwerty"));
     }
 
-    @org.junit.Test
+    @Test
     public void updateAfterLose() throws Exception {
         Player p1 = new Player("roman", "qwerty");
         Player p2 = new Player("mekh", "000000");
@@ -102,7 +102,7 @@ public class DatabaseTest {
         assertEquals(p2, Database.getPlayer("mekh", "000000"));
     }
 
-    @org.junit.Test
+    @Test
     public void getTop() throws Exception {
         Player p1 = new Player("artem", "123456");
         Player p2 = new Player("mekh", "000000");

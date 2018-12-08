@@ -18,8 +18,8 @@ public class ClientTransport extends AbstractTransport {
     public static final int MOVE_CHECKMATE_LOSE = 3;
     private Table table;
 
-    public ClientTransport(int port) throws IOException {
-        super(SocketChannel.open(new InetSocketAddress("localhost", port)));
+    public ClientTransport(String host, int port) throws IOException {
+        super(SocketChannel.open(new InetSocketAddress(host, port)));
         connection.configureBlocking(false);
     }
 

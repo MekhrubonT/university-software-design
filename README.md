@@ -1,11 +1,22 @@
 # Шахматы
 
-Вход в клиент осуществляется переходом по адресу [http://localhost:8085/index](http://localhost:8085/index).
+The chessmate app run arguments: 
 
-Можно выполнить вход по существующему логину и паролю или зарегистрироваться в системе.
+      -server | -s              - to run server app
 
-На данный момент в базе зарегистрированы четыре тестовых игрока:
-+ (artem, 123456)
-+ (mekh, 000000)
-+ (roman, qwerty)
-+ (qwerty, 123456)
+      -connection | -c          - to run connection app
+
+      -port num | -pnum         - to set ran application port, num - port number
+
+      -server_port num | -spnum - server port for connection to connect, only connection apps
+
+Examples:
+
+      java App -s -p8081
+
+      java App -c -sp8081 -port 8088
+
+      java App -connection -server_port 8081 -port 8089
+
+Вход в клиент осуществляется переходом по адресу http:\/\/localhost:\<port\>/index.
+

@@ -6,9 +6,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Created by -- on 20.10.2018.
@@ -128,4 +129,20 @@ public class DatabaseTest {
         assertEquals("roman", top.get(2).getLogin());
     }
 
+    @Test
+    public void deleteExistingUser() throws IOException {
+        String login = "mekhrubon_test";
+        String password = "password";
+        Player player = Database.registerPlayer(login, password);
+        assertEquals(player, new Player(login, password));
+        assertTrue(Database.removePlayer(player));
+        assertEquals(Database.getPlayer(login, password), Player.EMPTY_PLAYER);
+    }
+
+    @Test
+    public void deleteNonExistingUser() throws IOException {
+        String login = "mekhrubon_test_not_registered";
+        String password = "password";
+        assertFalse(Database.removePlayer(new Player(login, password)));
+    }
 }
